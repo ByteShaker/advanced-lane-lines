@@ -43,22 +43,19 @@ def finding_corners(fname, nx_ny_list=[(9,5)], verbose = False):
 
     return ret, instance_objpoints, instance_imgpoints
 
-def define_points(filepath, nx_ny_list):
+def define_points(images, nx_ny_list):
     """
-
     :param filepath:
     :param nx:
     :param ny:
     :return:
 
-    >>> objpoints, imgpoints = define_points('../camera_cal/calibration*', nx_ny_list = [(9,6),(9,5),(8,6),(7,6)])
+    >>> images = glob.glob('../camera_cal/calibration*')
+    >>> objpoints, imgpoints = define_points(images, nx_ny_list = [(9,6),(9,5),(8,6),(7,6)])
     >>> len(objpoints)
     19
 
     """
-    #get list of all calibration images
-    images = glob.glob(filepath)
-
     objpoints = []
     imgpoints = []
 
@@ -72,6 +69,25 @@ def define_points(filepath, nx_ny_list):
 
     return objpoints, imgpoints
 
+def cal_mtx_dist(filepath='../camera_cal/calibration*'):
+    """
+    :param filepath:
+    :return:
+
+    >>> rms, mtx, dist = cal_mtx_dist()
+    >>> rms
+    True
+    """
+    # get list of all calibration images
+    images = glob.glob(filepath)
+
+    nx_ny_list = [(9, 6), (9, 5), (8, 6), (7, 6)]
+    objpoints, imgpoints = define_points(images, nx_ny_list)
+
+    reference_img = cv2.imread(images[0], 0)
+    rms, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, reference_img.shape[::-1], None, None)
+
+    return ret, mtx, dist
 
 if __name__ == "__main__":
     import doctest
