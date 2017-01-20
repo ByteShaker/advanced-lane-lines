@@ -3,6 +3,7 @@ import cv2
 import matplotlib.pyplot as plt
 
 import glob
+import pickle
 
 def finding_corners(fname, nx_ny_list=[(9,5)], verbose = False):
     """
@@ -51,7 +52,7 @@ def define_points(images, nx_ny_list):
     :return:
 
     >>> images = glob.glob('../camera_cal/calibration*')
-    >>> objpoints, imgpoints = define_points(images, nx_ny_list = [(9,6),(9,5),(8,6),(7,6)])
+    >>> objpoints, imgpoints = define_points(images, nx_ny_list = [(9,6),(9,5),(7,6)])
     >>> len(objpoints)
     19
 
@@ -75,19 +76,23 @@ def cal_mtx_dist(filepath='../camera_cal/calibration*'):
     :return:
 
     >>> rms, mtx, dist = cal_mtx_dist()
-    >>> rms
+    >>> rms < 2.
     True
     """
     # get list of all calibration images
     images = glob.glob(filepath)
 
-    nx_ny_list = [(9, 6), (9, 5), (8, 6), (7, 6)]
+    nx_ny_list = [(9, 6), (9, 5), (7, 6)]
     objpoints, imgpoints = define_points(images, nx_ny_list)
 
     reference_img = cv2.imread(images[0], 0)
     rms, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, reference_img.shape[::-1], None, None)
 
-    return ret, mtx, dist
+    camera_calibration_values = {'rms': rms, 'mtx': mtx, 'dist': dist, 'rvecs': rvecs, 'tvecs': tvecs}
+    with open('camera_calibration_values.pickle', 'wb') as file:
+        pickle.dump(camera_calibration_values, file, protocol=pickle.HIGHEST_PROTOCOL)
+
+    return rms, mtx, dist
 
 if __name__ == "__main__":
     import doctest

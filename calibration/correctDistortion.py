@@ -4,36 +4,44 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 
-import findingCorners
+import calibrateCamera
 
-# Read in the saved objpoints and imgpoints
-#dist_pickle = pickle.load( open( "wide_dist_pickle.p", "rb" ) )
-#objpoints = dist_pickle["objpoints"]
-#imgpoints = dist_pickle["imgpoints"]
-
-#calibrate_camera
-ret, mtx, dist = findingCorners.cal_mtx_dist()
-
-# Read in an image
-img = cv2.imread('../test_images/test1.jpg')
-
-# TODO: Write a function that takes an image, object points, and image points
-# performs the camera calibration, image distortion correction and
-# returns the undistorted image
 
 def cal_undistort(img, mtx, dist):
-    # Use cv2.calibrateCamera and cv2.undistort()
     undist = cv2.undistort(img, mtx, dist, None, mtx)
     return undist
 
-undistorted = cal_undistort(img, mtx, dist)
 
-f, (ax1, ax2) = plt.subplots(1, 2, figsize=(24, 9))
-f.tight_layout()
-ax1.imshow(img)
-ax1.set_title('Original Image', fontsize=50)
-ax2.imshow(undistorted)
-ax2.set_title('Undistorted Image', fontsize=50)
-plt.subplots_adjust(left=0., right=1, top=0.9, bottom=0.)
+def correct_distortion(filepath='../test_images/test1.jpg', camera_calibration_values='./camera_calibration_values.pickle'):
+    """
+    :param filepath:
+    :param camera_calibration_values:
+    :return:
 
-plt.show()
+    """
+    try:
+        camera_calibration_values = open(camera_calibration_values, 'rb')
+        camera_calibration_values = pickle.load(camera_calibration_values)
+        mtx = camera_calibration_values['mtx']
+        dist = camera_calibration_values['dist']
+    except:
+        # calibrate_camera
+        rms, mtx, dist = calibrateCamera.cal_mtx_dist()
+
+    # Read in the image
+    img = cv2.imread(filepath)
+
+    undistorted = cal_undistort(img, mtx, dist)
+
+    f, (ax1, ax2) = plt.subplots(1, 2, figsize=(24, 9))
+    f.tight_layout()
+    ax1.imshow(img)
+    ax1.set_title('Original Image', fontsize=50)
+    ax2.imshow(undistorted)
+    ax2.set_title('Undistorted Image', fontsize=50)
+    plt.subplots_adjust(left=0., right=1, top=0.9, bottom=0.)
+
+    plt.show()
+
+if __name__ == "__main__":
+    correct_distortion('../camera_cal/calibration1.jpg')
