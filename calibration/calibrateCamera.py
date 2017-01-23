@@ -7,7 +7,7 @@ import pickle
 
 def finding_corners(fname, nx_ny_list=[(9,5)], verbose = False):
     """
-    >>> ret, instance_objpoints, instance_imgpoints = finding_corners('../camera_cal/calibration1.jpg', nx_ny_list=[(9,5)])
+    >>> ret, instance_objpoints, instance_imgpoints = finding_corners('./camera_cal/calibration1.jpg', nx_ny_list=[(9,5)])
     >>> len(instance_objpoints[0])
     45
     """
@@ -20,7 +20,6 @@ def finding_corners(fname, nx_ny_list=[(9,5)], verbose = False):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
     ret = False
-    i = -1
     for i in range(len(nx_ny_list)):
         nx, ny = nx_ny_list[i]
         # Find the chessboard corners
@@ -51,7 +50,7 @@ def define_points(images, nx_ny_list):
     :param ny:
     :return:
 
-    >>> images = glob.glob('../camera_cal/calibration*')
+    >>> images = glob.glob('./camera_cal/calibration*')
     >>> objpoints, imgpoints = define_points(images, nx_ny_list = [(9,6),(9,5),(7,6)])
     >>> len(objpoints)
     19
@@ -70,7 +69,7 @@ def define_points(images, nx_ny_list):
 
     return objpoints, imgpoints
 
-def cal_mtx_dist(filepath='../camera_cal/calibration*'):
+def cal_mtx_dist(filepath='./camera_cal/calibration*'):
     """
     :param filepath:
     :return:

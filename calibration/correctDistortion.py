@@ -30,6 +30,7 @@ def correct_distortion(filepath='../test_images/test1.jpg', camera_calibration_v
 
     # Read in the image
     img = cv2.imread(filepath)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
     undistorted = cal_undistort(img, mtx, dist)
 
@@ -44,4 +45,5 @@ def correct_distortion(filepath='../test_images/test1.jpg', camera_calibration_v
     plt.show()
 
 if __name__ == "__main__":
-    correct_distortion('../camera_cal/calibration1.jpg')
+    correct_distortion('./camera_cal/calibration1.jpg')
+    #correct_distortion('../test_images/straight_lines1.jpg')
