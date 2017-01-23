@@ -8,7 +8,7 @@ import pickle
 def hls_select(img, selector = 's', thresh=(0, 255)):
     # 1) Convert to HLS color space
     hls = cv2.cvtColor(img, cv2.COLOR_RGB2HLS)
-    # 2) Apply a threshold to the S channel
+    # 2) Apply a threshold to the selected channel
 
     h = hls[:, :, 0]
     l = hls[:, :, 1]

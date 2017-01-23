@@ -4,15 +4,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 
-import calibrateCamera
-
+import calibration.calibrateCamera as calibrateCamera
 
 def cal_undistort(img, mtx, dist):
     undist = cv2.undistort(img, mtx, dist, None, mtx)
     return undist
 
 
-def correct_distortion(filepath='../test_images/test1.jpg', camera_calibration_values='./camera_calibration_values.pickle'):
+def correct_distortion(img, camera_calibration_values='../calibration/camera_calibration_values.pickle'):
     """
     :param filepath:
     :param camera_calibration_values:
@@ -28,11 +27,18 @@ def correct_distortion(filepath='../test_images/test1.jpg', camera_calibration_v
         # calibrate_camera
         rms, mtx, dist = calibrateCamera.cal_mtx_dist()
 
+    undistorted = cal_undistort(img, mtx, dist)
+
+    return undistorted
+
+
+
+if __name__ == "__main__":
     # Read in the image
-    img = cv2.imread(filepath)
+    img = cv2.imread('../test_images/test1.jpg')
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
-    undistorted = cal_undistort(img, mtx, dist)
+    undistorted = correct_distortion(img)
 
     f, (ax1, ax2) = plt.subplots(1, 2, figsize=(24, 9))
     f.tight_layout()
@@ -43,7 +49,3 @@ def correct_distortion(filepath='../test_images/test1.jpg', camera_calibration_v
     plt.subplots_adjust(left=0., right=1, top=0.9, bottom=0.)
 
     plt.show()
-
-if __name__ == "__main__":
-    correct_distortion('./camera_cal/calibration1.jpg')
-    #correct_distortion('../test_images/straight_lines1.jpg')
