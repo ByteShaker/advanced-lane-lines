@@ -31,7 +31,7 @@ if __name__ == "__main__":
     image = cv2.imread('../test_images/straight_lines1.jpg')
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-    s_binary = hls_select(image, 's', (100,255))
+    s_binary = hls_select(image, 's', (220,255))
 
     # Plot the result
     f, (ax1, ax2) = plt.subplots(1, 2, figsize=(24, 9))

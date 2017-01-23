@@ -13,7 +13,7 @@ import perspective_transform.image_transform as img_transform
 if __name__ == "__main__":
 
     # Read in an image and grayscale it
-    image = cv2.imread('../test_images/straight_lines2.jpg')
+    image = cv2.imread('../test_images/test5.jpg')
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
     correctDistortion.correct_distortion(image)
@@ -25,12 +25,15 @@ if __name__ == "__main__":
     l = hls[:, :, 1]
     s = hls[:, :, 2]
 
-    s_binary = img_color.hls_select(image, 's', (100, 255))
+    l_binary = img_color.hls_select(image, 'l', (150, 255))
+    s_binary = img_color.hls_select(image, 's', (150, 255))
 
-    gradx = img_gradient.abs_sobel_thresh(s, 'x', 9, (20, 255))
-    grady = img_gradient.abs_sobel_thresh(s, 'y', 9, (20, 255))
-    mag_binary= img_gradient.mag_thresh(s, 3, (30,255))
-    dir_binary = img_gradient.dir_threshold(s, 31, (25*np.pi/180, 65*np.pi/180))
+    print(s_binary)
+
+    gradx = img_gradient.abs_sobel_thresh(one_color_channel, 'x', 9, (20, 255))
+    grady = img_gradient.abs_sobel_thresh(one_color_channel, 'y', 9, (20, 255))
+    mag_binary= img_gradient.mag_thresh(one_color_channel, 9, (50,255))
+    dir_binary = img_gradient.dir_threshold(one_color_channel, 31, (25*np.pi/180, 65*np.pi/180))
 
     position_binary = img_position.position_select(s)
 
@@ -38,6 +41,9 @@ if __name__ == "__main__":
     #combined[((gradx == 1) & (grady == 1)) | ((mag_binary == 1) & (dir_binary == 1))] = 1
     combined[((mag_binary == 1) & (dir_binary == 1)) & (position_binary == 1)] = 1
     #combined[((gradx == 1) & (grady == 1))] = 1
+
+    #combined[(((s_binary == 255) | (l_binary == 255)) | ((mag_binary == 1) & (dir_binary == 1))) & (position_binary == 1)] = 1
+    #combined[(((s_binary == 255) | (l_binary == 255))) & (position_binary == 1)] = 1
 
     src, dst = img_transform.perform_initial_sourcepoints()
     warped_combined = img_transform.warper(combined, src, dst)
