@@ -13,7 +13,7 @@ import perspective_transform.image_transform as img_transform
 if __name__ == "__main__":
 
     # Read in an image and grayscale it
-    image = cv2.imread('../test_images/test5.jpg')
+    image = cv2.imread('../test_images/straight_lines2.jpg')
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
     correctDistortion.correct_distortion(image)
@@ -25,15 +25,13 @@ if __name__ == "__main__":
     l = hls[:, :, 1]
     s = hls[:, :, 2]
 
-    l_binary = img_color.hls_select(image, 'l', (150, 255))
-    s_binary = img_color.hls_select(image, 's', (150, 255))
-
-    print(s_binary)
+    l_binary = img_color.hls_select(image, 'l', (200, 255))
+    s_binary = img_color.hls_select(image, 's', (200, 255))
 
     gradx = img_gradient.abs_sobel_thresh(one_color_channel, 'x', 9, (20, 255))
     grady = img_gradient.abs_sobel_thresh(one_color_channel, 'y', 9, (20, 255))
-    mag_binary= img_gradient.mag_thresh(one_color_channel, 9, (50,255))
-    dir_binary = img_gradient.dir_threshold(one_color_channel, 31, (25*np.pi/180, 65*np.pi/180))
+    mag_binary= img_gradient.mag_thresh(s, 3, (15,255))
+    dir_binary = img_gradient.dir_threshold(s, 3, (0*np.pi/180, 65*np.pi/180))
 
     position_binary = img_position.position_select(s)
 
@@ -42,19 +40,31 @@ if __name__ == "__main__":
     combined[((mag_binary == 1) & (dir_binary == 1)) & (position_binary == 1)] = 1
     #combined[((gradx == 1) & (grady == 1))] = 1
 
-    #combined[(((s_binary == 255) | (l_binary == 255)) | ((mag_binary == 1) & (dir_binary == 1))) & (position_binary == 1)] = 1
+    #combined[(((s_binary >= 200) | (l_binary >= 200)) | ((mag_binary == 1) & (dir_binary == 1))) & (position_binary == 1)] = 1
     #combined[(((s_binary == 255) | (l_binary == 255))) & (position_binary == 1)] = 1
 
     src, dst = img_transform.perform_initial_sourcepoints()
     warped_combined = img_transform.warper(combined, src, dst)
 
     # Plot the result
-    f, (ax1, ax2) = plt.subplots(1, 2, figsize=(24, 9))
+    f, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(24, 9))
+    #f, (ax1, ax2, ax3, ax4) = plt.subplots(1, 4, figsize=(24, 9))
     f.tight_layout()
-    ax1.imshow(image)
-    ax1.set_title('Original Image', fontsize=50)
-    ax2.imshow(warped_combined, cmap='gray')
-    ax2.set_title('Thresholded Gradient', fontsize=50)
+    ax1.imshow(s, cmap='gray')
+    ax1.set_title('Original Image', fontsize=20)
+    ax2.imshow(mag_binary, cmap='gray')
+    ax2.set_title('Magnitude', fontsize=20)
+    ax3.imshow(combined, cmap='gray')
+    ax3.set_title('Direction', fontsize=20)
+    ax4.imshow(warped_combined, cmap='gray')
+    ax4.set_title('Combination', fontsize=20)
     plt.subplots_adjust(left=0., right=1, top=0.9, bottom=0.)
+
+    plt.show()
+
+    histogram = np.sum(warped_combined[warped_combined.shape[0] / 2:, :], axis=0)
+    print(histogram)
+    #Todo: Histogram in Pandas add sliding window
+    plt.plot(histogram)
 
     plt.show()
