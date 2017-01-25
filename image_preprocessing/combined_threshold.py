@@ -20,6 +20,8 @@ def combine_mag_dir_pos(image, type = 'hls_S'):
         l = hls[:, :, 1]
         s = hls[:, :, 2]
 
+    #edges = cv2.Canny(s, 50, 150)
+
     mag_binary = img_gradient.mag_thresh(s, 3, (15, 255))
     dir_binary = img_gradient.dir_threshold(s, 3, (0 * np.pi / 180, 65 * np.pi / 180))
     position_binary = img_position.position_select(s)
@@ -32,7 +34,7 @@ def combine_mag_dir_pos(image, type = 'hls_S'):
 if __name__ == "__main__":
 
     # Read in an image and grayscale it
-    image = cv2.imread('../test_images/straight_lines2.jpg')
+    image = cv2.imread('../test_images/test5.jpg')
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
     image = correctDistortion.correct_distortion(image)
@@ -44,13 +46,15 @@ if __name__ == "__main__":
     l = hls[:, :, 1]
     s = hls[:, :, 2]
 
+    edges = cv2.Canny(s, 100, 200)
+
     l_binary = img_color.hls_select(image, 'l', (200, 255))
     s_binary = img_color.hls_select(image, 's', (200, 255))
 
     gradx = img_gradient.abs_sobel_thresh(one_color_channel, 'x', 9, (20, 255))
     grady = img_gradient.abs_sobel_thresh(one_color_channel, 'y', 9, (20, 255))
-    mag_binary = img_gradient.mag_thresh(s, 3, (15, 255))
-    dir_binary = img_gradient.dir_threshold(s, 3, (0 * np.pi / 180, 65 * np.pi / 180))
+    mag_binary = img_gradient.mag_thresh(s, 9, (30, 255))
+    dir_binary = img_gradient.dir_threshold(edges, 9, (35 * np.pi / 180, 65 * np.pi / 180))
 
     position_binary = img_position.position_select(s)
 
@@ -71,7 +75,7 @@ if __name__ == "__main__":
     f.tight_layout()
     ax1.imshow(s, cmap='gray')
     ax1.set_title('Original Image', fontsize=20)
-    ax2.imshow(mag_binary, cmap='gray')
+    ax2.imshow(edges, cmap='gray')
     ax2.set_title('Magnitude', fontsize=20)
     ax3.imshow(combined, cmap='gray')
     ax3.set_title('Direction', fontsize=20)

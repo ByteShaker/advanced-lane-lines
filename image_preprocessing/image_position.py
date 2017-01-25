@@ -13,7 +13,7 @@ def perform_inital_position(img):
                                   (imshape[1],imshape[0])]], dtype=np.int32)
     return initial_position
 
-def position_select(img, ignore_mask_color=1):
+def position_select(img, position_select=None, ignore_mask_color=1):
     position_select_binary = np.zeros_like(img)
 
     # defining a 3 channel or 1 channel color to fill the mask with depending on the input image
@@ -23,7 +23,8 @@ def position_select(img, ignore_mask_color=1):
     else:
         ignore_mask_color = ignore_mask_color
 
-    position_select = perform_inital_position(img)
+    if position_select==None:
+        position_select = perform_inital_position(img)
 
     # filling pixels inside the polygon defined by "vertices" with the fill color
     cv2.fillPoly(position_select_binary, position_select, ignore_mask_color)
