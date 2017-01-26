@@ -49,7 +49,7 @@ def dir_threshold(one_color_channel_image, sobel_kernel=3, thresh=(0, np.pi/2)):
     sobely = cv2.Sobel(one_color_channel_image, cv2.CV_64F, 0, 1, ksize=sobel_kernel)
 
     with np.errstate(divide='ignore', invalid='ignore'):
-        direction = np.arctan(sobely / sobelx)
+        direction = np.arctan(sobely/sobelx)
         direction = np.absolute(direction)
 
         dir_binary = np.zeros_like(direction)

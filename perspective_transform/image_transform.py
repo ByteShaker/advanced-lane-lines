@@ -20,12 +20,16 @@ def perform_initial_sourcepoints():
 
     return (src, dst)
 
-def warper(img, src, dst):
+def warper(img, src, dst, direction='forward'):
 
     # Compute and apply perpective transform
     img_size = (img.shape[1], img.shape[0])
-    M = cv2.getPerspectiveTransform(src, dst)
-    warped = cv2.warpPerspective(img, M, img_size, flags=cv2.INTER_NEAREST)  # keep same size as input image
+    if direction == 'forward':
+        M = cv2.getPerspectiveTransform(src, dst)
+        warped = cv2.warpPerspective(img, M, img_size, flags=cv2.INTER_NEAREST)  # keep same size as input image
+    elif direction == 'backward':
+        Minv = cv2.getPerspectiveTransform(dst, src)
+        warped = cv2.warpPerspective(img, Minv, img_size, flags=cv2.INTER_NEAREST)  # keep same size as input image
 
     return warped
 

@@ -11,6 +11,9 @@ import perspective_transform.image_transform as img_transform
 
 import image_preprocessing.image_position as img_position
 
+import identify_lanelines.identify_radius as identify_radius
+
+
 def border_control(approx_middle, window, low, high):
     left_border = approx_middle - (window / 2)
     left_border = int(left_border) if left_border > low else int(low)
@@ -73,7 +76,7 @@ def identify_lane_position(histogram, rolling_window=1000, std=10.0, approx_left
 if __name__ == "__main__":
 
     # Read in an image and grayscale it
-    image = cv2.imread('../test_images/test4.jpg')
+    image = cv2.imread('../test_images/straight_lines2.jpg')
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
     image = correctDistortion.correct_distortion(image)
@@ -87,7 +90,9 @@ if __name__ == "__main__":
 
     lanes, left_lane, right_lane = identify_lane_position(histogram)
 
-    print(left_lane, right_lane)
+    abs_left_lane = left_lane
+    abs_right_lane = right_lane
+    print(abs_left_lane, abs_right_lane)
 
     #Todo: Laufe entlang eines Bildes und identifiziere alle Lanepunkte ->
     identified_left_curve_area = np.zeros_like(warped_combined)
@@ -137,6 +142,14 @@ if __name__ == "__main__":
     #identified_curve_area[((identified_curve_area == 1) & (warped_combined == 1))] = 1
 
 
+    fitted_lane_img = identify_radius.create_fitted_area(identified_left_curve_area, identified_right_curve_area, abs_left_lane, abs_right_lane)
+    warped_fitted_lane_img = img_transform.warper(fitted_lane_img, src, dst, direction='backward')
+
+    red_image = np.zeros((warped_fitted_lane_img.shape[0], warped_fitted_lane_img.shape[1], 3), np.uint8)
+    #red_image[:,:] = (0, 0, 255)
+    red_image[((warped_fitted_lane_img == 1))] = (0, 0, 255)
+    combo = weighted_img(red_image, image, α=0.8, β=1., λ=0.)
+
     #histogram_df['left_Lane'].plot()
 
     # Plot the result
@@ -144,9 +157,9 @@ if __name__ == "__main__":
     #f.tight_layout()
     ax1.imshow(image, cmap='gray')
     ax1.set_title('Original Image', fontsize=20)
-    ax2.imshow(identified_right_curve_area, cmap='gray')
+    ax2.imshow(combo, cmap='gray')
     ax2.set_title('Cobined Threshold', fontsize=20)
-    ax3.imshow(identified_left_curve_area, cmap='gray')
+    ax3.imshow(warped_fitted_lane_img, cmap='gray')
     ax3.set_title('Transformed', fontsize=20)
     lanes.plot.area(ax=ax4, stacked=True)
     ax4.set_title('Lane Position', fontsize=20)
