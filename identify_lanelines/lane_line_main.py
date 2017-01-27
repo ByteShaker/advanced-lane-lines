@@ -14,7 +14,12 @@ import image_preprocessing.image_position as img_position
 import identify_lanelines.identify_area as identify_area
 import identify_lanelines.identify_radius as identify_radius
 
+#import imageio
+#imageio.plugins.ffmpeg.download()
 from moviepy.editor import VideoFileClip
+
+MTX=None
+DIST=None
 
 def weighted_img(img, initial_img, α=0.8, β=1., λ=0.):
     """
@@ -31,7 +36,12 @@ def weighted_img(img, initial_img, α=0.8, β=1., λ=0.):
     return cv2.addWeighted(initial_img, α, img, β, λ)
 
 def process_image(raw_image):
-    raw_image = correctDistortion.correct_distortion(raw_image)
+    global MTX, DIST
+    mtx, dist, raw_image = correctDistortion.correct_distortion(raw_image, mtx=MTX, dist=DIST)
+    if (MTX == None) | (DIST == None):
+        MTX=mtx
+        DIST=dist
+
     image = cv2.cvtColor(raw_image, cv2.COLOR_BGR2RGB)
 
     combined = combined_threshold.combined_thresholds_1(image)
@@ -112,7 +122,7 @@ if __name__ == "__main__":
 
     combo = process_image(image)
 
-    white_output = '../white.mp4'
+    white_output = '../white_2.mp4'
     clip1 = VideoFileClip('../project_video.mp4')
     white_clip = clip1.fl_image(process_image)  # NOTE: this function expects color images!!
     white_clip.write_videofile(white_output, audio=False)

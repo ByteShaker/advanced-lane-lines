@@ -11,25 +11,26 @@ def cal_undistort(img, mtx, dist):
     return undist
 
 
-def correct_distortion(img, camera_calibration_values='../calibration/camera_calibration_values.pickle'):
+def correct_distortion(img, mtx=None, dist=None, camera_calibration_values='../calibration/camera_calibration_values.pickle'):
     """
     :param filepath:
     :param camera_calibration_values:
     :return:
 
     """
-    try:
-        camera_calibration_values = open(camera_calibration_values, 'rb')
-        camera_calibration_values = pickle.load(camera_calibration_values)
-        mtx = camera_calibration_values['mtx']
-        dist = camera_calibration_values['dist']
-    except:
-        # calibrate_camera
-        rms, mtx, dist = calibrateCamera.cal_mtx_dist()
+    if (mtx == None) | (dist == None):
+        try:
+            camera_calibration_values = open(camera_calibration_values, 'rb')
+            camera_calibration_values = pickle.load(camera_calibration_values)
+            mtx = camera_calibration_values['mtx']
+            dist = camera_calibration_values['dist']
+        except:
+            # calibrate_camera
+            rms, mtx, dist = calibrateCamera.cal_mtx_dist()
 
     undistorted = cal_undistort(img, mtx, dist)
 
-    return undistorted
+    return mtx, dist, undistorted
 
 
 

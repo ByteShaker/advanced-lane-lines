@@ -35,7 +35,9 @@ def kernel_density_estimation(dataframe, rolling_window=1000, std=40):
     return kde_dataframe
 
 def create_histogram(img, y_area_of_image=[0, 1]):
-    histogram = np.sum(img[img.shape[0] * y_area_of_image[0]:img.shape[0] * y_area_of_image[1], :], axis=0)
+    bottom_value = int(img.shape[0] * y_area_of_image[1])
+    top_value = int(img.shape[0] * y_area_of_image[0])
+    histogram = np.sum(img[top_value:bottom_value, :], axis=0)
 
     return histogram
 
