@@ -2,6 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.sparse import coo_matrix
 
+import cv2
+
 def fit_lane_line(lane_img):
     # Fit a second order polynomial to each fake lane line
     coo_lane_img = coo_matrix(lane_img)
@@ -15,7 +17,7 @@ def fit_lane_line(lane_img):
 
 
 def create_fitted_area(left_lane_img, right_lane_img, abs_left_lane, abs_right_lane):
-    fitted_lane_img = np.zeros_like(left_lane_img)
+    fitted_lane_img = np.zeros_like(left_lane_img).astype(np.uint8)
     img_shape = fitted_lane_img.shape
 
     lane_width = (abs_right_lane - abs_left_lane)
@@ -23,20 +25,28 @@ def create_fitted_area(left_lane_img, right_lane_img, abs_left_lane, abs_right_l
     combined_lane_img[((combined_lane_img == 1) | (right_lane_img == 1))] = 1
     lane_fit = fit_lane_line(combined_lane_img)
 
-    for row in range(img_shape[0]):
-        fitx = lane_fit[0] * row ** 2 + lane_fit[1] * row + lane_fit[2]
-        for col in range(img_shape[1]):
-            if ((col >= (fitx - lane_width)) & (col <= fitx)):
-                fitted_lane_img[row][col] = 1
+    #for row in range(img_shape[0]):
+    #    fitx = lane_fit[0] * row ** 2 + lane_fit[1] * row + lane_fit[2]
+    #    for col in range(img_shape[1]):
+    #        if ((col >= (fitx - lane_width)) & (col <= fitx)):
+    #            fitted_lane_img[row][col] = 1
 
-    yvals = np.array(range(720))
+    yvals = np.array(range(img_shape[0]))
     left_fitx = lane_fit[0] * yvals ** 2 + lane_fit[1] * yvals + lane_fit[2]
+
+    # Recast the x and y points into usable format for cv2.fillPoly()
+    pts_left = np.array([np.transpose(np.vstack([left_fitx, yvals]))])
+    pts_right = np.array([np.flipud(np.transpose(np.vstack([left_fitx-lane_width, yvals])))])
+    pts = np.hstack((pts_left, pts_right))
+
+    # Draw the lane onto the warped blank image
+    cv2.fillPoly(fitted_lane_img, np.int_([pts]), 1)
 
     # Plot up the fake data
     #plt.plot(xvals, yvals, 'o', color='red')
-    plt.xlim(0, 1280)
-    plt.ylim(0, 720)
-    plt.plot(left_fitx, yvals, color='green', linewidth=3)
-    plt.gca().invert_yaxis()  # to visualize as we do the images
+    #plt.xlim(0, 1280)
+    #plt.ylim(0, 720)
+    #plt.plot(left_fitx, yvals, color='green', linewidth=3)
+    #plt.gca().invert_yaxis()  # to visualize as we do the images
 
     return fitted_lane_img

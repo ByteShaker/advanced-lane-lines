@@ -21,6 +21,30 @@ from moviepy.editor import VideoFileClip
 MTX=None
 DIST=None
 
+# Define a class to receive the characteristics of each line detection
+class Line():
+    def __init__(self):
+        # was the line detected in the last iteration?
+        self.detected = False
+        # x values of the last n fits of the line
+        self.recent_xfitted = []
+        #average x values of the fitted line over the last n iterations
+        self.bestx = None
+        #polynomial coefficients averaged over the last n iterations
+        self.best_fit = None
+        #polynomial coefficients for the most recent fit
+        self.current_fit = [np.array([False])]
+        #radius of curvature of the line in some units
+        self.radius_of_curvature = None
+        #distance in meters of vehicle center from the line
+        self.line_base_pos = None
+        #difference in fit coefficients between last and new fits
+        self.diffs = np.array([0,0,0], dtype='float')
+        #x values for detected line pixels
+        self.allx = None
+        #y values for detected line pixels
+        self.ally = None
+
 def weighted_img(img, initial_img, α=0.8, β=1., λ=0.):
     """
     `img` is the output of the hough_lines(), An image with lines drawn on it.
@@ -36,12 +60,14 @@ def weighted_img(img, initial_img, α=0.8, β=1., λ=0.):
     return cv2.addWeighted(initial_img, α, img, β, λ)
 
 def process_image(raw_image):
+    # Correct Distortion with calculated Camera Calibration (If not present calibrate)
     global MTX, DIST
     mtx, dist, raw_image = correctDistortion.correct_distortion(raw_image, mtx=MTX, dist=DIST)
     if (MTX == None) | (DIST == None):
-        MTX=mtx
-        DIST=dist
+        MTX = mtx
+        DIST = dist
 
+    # Preprocess Image to filter for LanePixels
     image = cv2.cvtColor(raw_image, cv2.COLOR_BGR2RGB)
 
     combined = combined_threshold.combined_thresholds_1(image)
@@ -110,7 +136,7 @@ def process_image(raw_image):
 
     blue_image = np.zeros((warped_fitted_lane_img.shape[0], warped_fitted_lane_img.shape[1], 3), np.uint8)
     # red_image[:,:] = (0, 0, 255)
-    blue_image[((warped_fitted_lane_img == 1))] = (0, 0, 255)
+    blue_image[((warped_fitted_lane_img == 1))] = (255, 0, 0)
     combo = weighted_img(blue_image, raw_image, α=0.8, β=1., λ=0.)
 
     return combo
@@ -118,9 +144,10 @@ def process_image(raw_image):
 
 if __name__ == "__main__":
 
-    image = cv2.imread('../test_images/straight_lines2.jpg')
-
-    combo = process_image(image)
+    #image = cv2.imread('../test_images/straight_lines2.jpg')
+    #combo = process_image(image)
+    #cv2.imshow('Window', combo)
+    #cv2.waitKey()
 
     white_output = '../white_2.mp4'
     clip1 = VideoFileClip('../project_video.mp4')
