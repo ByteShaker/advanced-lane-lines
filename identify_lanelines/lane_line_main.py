@@ -74,15 +74,18 @@ def process_image(raw_image):
     src, dst = img_transform.perform_initial_sourcepoints()
     warped_combined = img_transform.warper(combined, src, dst)
 
-    histogram = identify_area.create_histogram(warped_combined, y_area_of_image=[2 / 3, 1])
-    lanes, left_lane, right_lane = identify_area.identify_lane_position(histogram)
+    cv2.imshow('Window2', warped_combined)
+
+    # Find Lane Pixels
+    histogram1 = identify_area.create_histogram(warped_combined, y_area_of_image=[2 / 3, 1])
+    lanes, left_lane, right_lane = identify_area.identify_lane_position(histogram1)
 
     abs_left_lane = left_lane
     abs_right_lane = right_lane
     #print(abs_left_lane, abs_right_lane)
 
-    identified_left_curve_area = np.zeros_like(warped_combined)
-    identified_right_curve_area = np.zeros_like(warped_combined)
+    identified_left_curve_area = np.zeros_like(warped_combined, dtype=np.uint8)
+    identified_right_curve_area = np.zeros_like(warped_combined, dtype=np.uint8)
     img_shape = warped_combined.shape
 
     img_areas = 10
@@ -92,8 +95,8 @@ def process_image(raw_image):
         # histogram_df['Peak_Filter'] = histogram_df[0].rolling(window=200, axis=0, center=True, win_type='gaussian').mean(std=10.0)
         # histogram_df['Peak_Filter'].plot()
         temp_lane_window = 100 + ((i / img_areas) * 100)
-        lanes, left_lane, right_lane = identify_area.identify_lane_position(histogram, std=10, approx_left_lane=left_lane,
-                                                              approx_right_lane=right_lane, peak_filter_threshold=0,
+        lanes, left_lane, right_lane = identify_area.identify_lane_position(histogram, std=50, approx_left_lane=left_lane,
+                                                              approx_right_lane=right_lane, peak_filter_threshold=10,
                                                               lane_window=temp_lane_window)
         #print(left_lane, right_lane)
 
@@ -104,7 +107,7 @@ def process_image(raw_image):
                                     (left_right_border, img_shape[0] * ((img_areas - i) / img_areas))]], dtype=np.int32)
         temp_left_img_position = img_position.position_select(warped_combined, temp_left_area)
 
-        identified_left_curve_area[((identified_left_curve_area == 1) | (temp_left_img_position == 1))] = 1
+        identified_left_curve_area[((identified_left_curve_area >= 1) | (temp_left_img_position >= 1))] = 1
 
         right_left_border, right_right_border = identify_area.border_control(right_lane, temp_lane_window, 0, img_shape[1])
         temp_right_area = np.array([[(right_left_border, img_shape[0] * ((img_areas - i) / img_areas)),
@@ -114,23 +117,23 @@ def process_image(raw_image):
                                    dtype=np.int32)
         temp_right_img_position = img_position.position_select(warped_combined, temp_right_area)
 
-        identified_right_curve_area[((identified_right_curve_area == 1) | (temp_right_img_position == 1))] = 1
+        identified_right_curve_area[((identified_right_curve_area >= 1) | (temp_right_img_position >= 1))] = 1
 
-        # f, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(24, 9))
-        # y_area_of_image = [(img_areas - (i + 1)) / img_areas, (img_areas - i) / img_areas]
-        # ax1.imshow(warped_combined[warped_combined.shape[0] * y_area_of_image[0]:warped_combined.shape[0] * y_area_of_image[1], :], cmap='gray')
-        # ax1.set_title('Original Image', fontsize=20)
-        # pd.DataFrame(histogram).plot(ax=ax2)
-        # ax2.set_title('Cobined Threshold', fontsize=20)
-        # lanes.plot(ax=ax3)
-        # ax3.set_title('Cobined Threshold', fontsize=20)
-        # plt.subplots_adjust(left=0.05, right=0.95, top=0.9, bottom=0.05)
-        # plt.show()
+        #f, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(24, 9))
+        #y_area_of_image = [(img_areas - (i + 1)) / img_areas, (img_areas - i) / img_areas]
+        #ax1.imshow(warped_combined[int(warped_combined.shape[0] * y_area_of_image[0]):int(warped_combined.shape[0] * y_area_of_image[1]), :], cmap='gray')
+        #ax1.set_title('Original Image', fontsize=20)
+        #pd.DataFrame(histogram).plot(ax=ax2)
+        #ax2.set_title('Cobined Threshold', fontsize=20)
+        #lanes.plot(ax=ax3)
+        #ax3.set_title('Cobined Threshold', fontsize=20)
+        #plt.subplots_adjust(left=0.05, right=0.95, top=0.9, bottom=0.05)
+        #plt.show()
 
     # identified_curve_area[((identified_curve_area == 1) & (warped_combined == 1))] = 1
 
 
-    fitted_lane_img = identify_radius.create_fitted_area(identified_left_curve_area, identified_right_curve_area,
+    fitted_lane_img = identify_radius.create_fitted_area_1(identified_left_curve_area, identified_right_curve_area,
                                                          abs_left_lane, abs_right_lane)
     warped_fitted_lane_img = img_transform.warper(fitted_lane_img, src, dst, direction='backward')
 
@@ -138,6 +141,9 @@ def process_image(raw_image):
     # red_image[:,:] = (0, 0, 255)
     blue_image[((warped_fitted_lane_img == 1))] = (255, 0, 0)
     combo = weighted_img(blue_image, raw_image, α=0.8, β=1., λ=0.)
+
+    cv2.imshow('Window', combo)
+    cv2.waitKey(100)
 
     return combo
 
@@ -147,7 +153,7 @@ if __name__ == "__main__":
     #image = cv2.imread('../test_images/straight_lines2.jpg')
     #combo = process_image(image)
     #cv2.imshow('Window', combo)
-    #cv2.waitKey()
+    #cv2.waitKey(1000)
 
     white_output = '../white_2.mp4'
     clip1 = VideoFileClip('../project_video.mp4')

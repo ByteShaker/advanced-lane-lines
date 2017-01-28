@@ -7,10 +7,10 @@ import pickle
 
 def perform_initial_sourcepoints():
     src = np.float32(
-            [[603, 444],
+            [[515, 500],
              [220, 705],
              [1083, 705],
-             [675, 444]])
+             [763, 500]])
 
     dst = np.float32(
             [[400, 20],

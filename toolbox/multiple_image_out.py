@@ -17,10 +17,11 @@ def create_blank(height, width, rgb_color=(0, 0, 0)):
 
 def add_image_at_position(base_img, add_img, position_percentage=(0,1,0,1)):
     # If Image On_Color_Image Convert to 3 Channels
-    add_img_shape = len(add_img)
-    #print(add_img)
-    if add_img_shape == 2:
-        add_img = cv2.cvtColor(img2, cv2.COLOR_GRAY2BGR)
+    add_img_shape = len(add_img.shape)
+    #print(add_img_shape)
+    #ToDo: Find Correct criteria for grayscale Image
+    if add_img_shape != 3:
+        add_img = cv2.cvtColor(add_img, cv2.COLOR_GRAY2BGR)
 
     base_img_shape = base_img.shape
     position_px = (int(position_percentage[0]*base_img_shape[0]),
@@ -42,7 +43,7 @@ def two_images(img1, img2):
 
     return new_image
 
-def image_cluster(img_list=[], img_text=[], new_img_shape=None, cluster_shape=None):
+def image_cluster(img_list=[], img_text=False, new_img_shape=None, cluster_shape=None):
     if cluster_shape == None:
         val_col = int(np.ceil(np.sqrt(len(img_list))))
         val_row = int(np.ceil(len(img_list)/val_col))
@@ -50,6 +51,7 @@ def image_cluster(img_list=[], img_text=[], new_img_shape=None, cluster_shape=No
     if new_img_shape == None:
         new_img_shape = img_list[0].shape
         new_img_shape = tuple([int(new_img_shape[i]*cluster_shape[i]/max(cluster_shape)) for i in range(len(cluster_shape))])
+    #Todo: Calculate New Image Shape if One Value is given
 
     size_of_cluster = (cluster_shape[0] * cluster_shape[1])
     if size_of_cluster < len(img_list):
@@ -61,8 +63,10 @@ def image_cluster(img_list=[], img_text=[], new_img_shape=None, cluster_shape=No
         for col in range(cluster_shape[1]):
             new_image = add_image_at_position(new_image, img_list[cluster_index], (row/cluster_shape[0], (row+1)/cluster_shape[0], col/cluster_shape[1], (col+1)/cluster_shape[1]))
 
-            text_position = (col*int(new_img_shape[1]/cluster_shape[1])+100, row*int(new_img_shape[0]/cluster_shape[0])+100)
-            cv2.putText(new_image, img_text[cluster_index], text_position, cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 5)
+            if img_text:
+                if img_text[cluster_index] != None:
+                    text_position = (col*int(new_img_shape[1]/cluster_shape[1])+100, row*int(new_img_shape[0]/cluster_shape[0])+100)
+                    cv2.putText(new_image, img_text[cluster_index], text_position, cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 5)
 
             cluster_index += 1
             if (cluster_index >= len(img_list)):

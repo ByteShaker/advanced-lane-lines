@@ -52,8 +52,8 @@ def dir_threshold(one_color_channel_image, sobel_kernel=3, thresh=(0, np.pi/2)):
         direction = np.arctan(sobely/sobelx)
         direction = np.absolute(direction)
 
-        dir_binary = np.zeros_like(direction)
-        dir_binary[(direction > thresh[0]) & (direction < thresh[1])] = 1
+        dir_binary = np.zeros_like(direction, dtype=np.uint8)
+        dir_binary[(direction > thresh[0]) & (direction < thresh[1])] = 255
 
     return dir_binary
 
