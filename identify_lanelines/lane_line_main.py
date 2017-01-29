@@ -10,9 +10,12 @@ import image_preprocessing.combined_threshold as combined_threshold
 import perspective_transform.image_transform as img_transform
 
 import image_preprocessing.image_position as img_position
+import image_preprocessing.image_color as img_color
 
 import identify_lanelines.identify_area as identify_area
 import identify_lanelines.identify_radius as identify_radius
+
+import toolbox.multiple_image_out as mio
 
 #import imageio
 #imageio.plugins.ffmpeg.download()
@@ -59,7 +62,7 @@ def weighted_img(img, initial_img, α=0.8, β=1., λ=0.):
     """
     return cv2.addWeighted(initial_img, α, img, β, λ)
 
-def process_image(raw_image):
+def process_image(raw_image, cvtColor='RGB'):
     # Correct Distortion with calculated Camera Calibration (If not present calibrate)
     global MTX, DIST
     mtx, dist, raw_image = correctDistortion.correct_distortion(raw_image, mtx=MTX, dist=DIST)
@@ -68,13 +71,25 @@ def process_image(raw_image):
         DIST = dist
 
     # Preprocess Image to filter for LanePixels
-    image = cv2.cvtColor(raw_image, cv2.COLOR_BGR2RGB)
+    if cvtColor == 'RGB':
+        raw_image = cv2.cvtColor(raw_image, cv2.COLOR_RGB2BGR)
 
-    combined = combined_threshold.combined_thresholds_1(image)
     src, dst = img_transform.perform_initial_sourcepoints()
-    warped_combined = img_transform.warper(combined, src, dst)
+    warped_image = img_transform.warper(raw_image, src, dst)
 
-    cv2.imshow('Window2', warped_combined)
+    #warped_combined = combined_threshold.combined_thresholds_2(warped_image)
+
+    #cv2.imshow('Window1', warped_image)
+    #cv2.imshow('Window2', warped_combined)
+
+    warped_image_cont = img_color.add_contrast(warped_image)
+    warped_combined_cont = combined_threshold.combined_thresholds_2(warped_image_cont)
+
+    #new_image = mio.image_cluster(
+    #    [warped_image, warped_image_cont, warped_combined, warped_combined_cont], new_img_shape=(1200, 2260), cluster_shape=(2, 2))
+    #cv2.imshow('Lane_Line_Contrast', new_image)
+
+    warped_combined = warped_combined_cont
 
     # Find Lane Pixels
     histogram1 = identify_area.create_histogram(warped_combined, y_area_of_image=[2 / 3, 1])
@@ -130,8 +145,8 @@ def process_image(raw_image):
     blue_image[((warped_fitted_lane_img == 1))] = (255, 0, 0)
     combo = weighted_img(blue_image, raw_image, α=0.8, β=1., λ=0.)
 
-    cv2.imshow('Window', combo)
-    cv2.waitKey(100)
+    #cv2.imshow('Window3', combo)
+    cv2.waitKey(10)
 
     return combo
 
@@ -144,6 +159,10 @@ if __name__ == "__main__":
     #cv2.waitKey(1000)
 
     white_output = '../white_2.mp4'
-    clip1 = VideoFileClip('../project_video.mp4')
+    #clip1 = VideoFileClip('../project_video.mp4')
+    clip1 = VideoFileClip('../challenge_video.mp4')
+    #clip1 = VideoFileClip('../harder_challenge_video.mp4')
+
+
     white_clip = clip1.fl_image(process_image)  # NOTE: this function expects color images!!
     white_clip.write_videofile(white_output, audio=False)

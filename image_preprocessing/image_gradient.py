@@ -39,7 +39,7 @@ def mag_thresh(one_color_channel_image, sobel_kernel=3, mag_thresh=(0, 255)):
     mag = (mag / scale_factor).astype(np.uint8)  # rescaling to 8-bit
     # 6) Create a binary mask where mag thresholds are met
     mag_binary = np.zeros_like(mag)
-    mag_binary[(mag >= mag_thresh[0]) & (mag <= mag_thresh[1])] = 1
+    mag_binary[(mag >= mag_thresh[0]) & (mag <= mag_thresh[1])] = 255
     return mag_binary
 
 def dir_threshold(one_color_channel_image, sobel_kernel=3, thresh=(0, np.pi/2)):
