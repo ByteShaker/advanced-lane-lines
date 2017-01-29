@@ -2,6 +2,8 @@ import numpy as np
 import cv2
 import matplotlib.pyplot as plt
 
+import toolbox.multiple_plots_out as mpo
+
 def abs_sobel_thresh(one_color_channel_image, orient='x', sobel_kernel=3, grad_thresh=(0, 255)):
     # Sobel Kernel needs to be odd
     if sobel_kernel % 2 == 0:
@@ -60,7 +62,7 @@ def dir_threshold(one_color_channel_image, sobel_kernel=3, thresh=(0, np.pi/2)):
 if __name__ == "__main__":
 
     # Read in an image and grayscale it
-    image = cv2.imread('../test_images/straight_lines1.jpg')
+    image = cv2.imread('../test_images/test5.jpg')
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
     one_color_channel = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
@@ -72,15 +74,7 @@ if __name__ == "__main__":
 
     combined = np.zeros_like(dir_binary)
     #combined[((gradx == 1) & (grady == 1)) | ((mag_binary == 1) & (dir_binary == 1))] = 1
-    combined[((mag_binary == 1) & (dir_binary == 1))] = 1
+    combined[((mag_binary >= 1) & (dir_binary >= 1))] = 1
 
-    # Plot the result
-    f, (ax1, ax2) = plt.subplots(1, 2, figsize=(24, 9))
-    f.tight_layout()
-    ax1.imshow(image)
-    ax1.set_title('Original Image', fontsize=50)
-    ax2.imshow(combined, cmap='gray')
-    ax2.set_title('Thresholded Gradient', fontsize=50)
-    plt.subplots_adjust(left=0., right=1, top=0.9, bottom=0.)
-
-    plt.show()
+    mpo.plot_cluster([gradx, grady, mag_binary, dir_binary, combined])
+    mpo.plot_cluster([image, combined], img_text=['Original Image', 'Thresholded Gradient'])

@@ -25,12 +25,6 @@ def create_fitted_area(left_lane_img, right_lane_img, abs_left_lane, abs_right_l
     combined_lane_img[((combined_lane_img == 1) | (right_lane_img == 1))] = 1
     lane_fit = fit_lane_line(combined_lane_img)
 
-    #for row in range(img_shape[0]):
-    #    fitx = lane_fit[0] * row ** 2 + lane_fit[1] * row + lane_fit[2]
-    #    for col in range(img_shape[1]):
-    #        if ((col >= (fitx - lane_width)) & (col <= fitx)):
-    #            fitted_lane_img[row][col] = 1
-
     yvals = np.array(range(img_shape[0]))
     left_fitx = lane_fit[0] * yvals ** 2 + lane_fit[1] * yvals + lane_fit[2]
 
@@ -58,12 +52,6 @@ def create_fitted_area_1(left_lane_img, right_lane_img, abs_left_lane, abs_right
     #lane_width = (abs_right_lane - abs_left_lane)
     left_lane_fit = fit_lane_line(left_lane_img)
     right_lane_fit = fit_lane_line(right_lane_img)
-
-    #for row in range(img_shape[0]):
-    #    fitx = lane_fit[0] * row ** 2 + lane_fit[1] * row + lane_fit[2]
-    #    for col in range(img_shape[1]):
-    #        if ((col >= (fitx - lane_width)) & (col <= fitx)):
-    #            fitted_lane_img[row][col] = 1
 
     yvals = np.array(range(img_shape[0]))
     left_fitx = left_lane_fit[0] * yvals ** 2 + left_lane_fit[1] * yvals + left_lane_fit[2]

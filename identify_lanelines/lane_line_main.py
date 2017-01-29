@@ -119,17 +119,6 @@ def process_image(raw_image):
 
         identified_right_curve_area[((identified_right_curve_area >= 1) | (temp_right_img_position >= 1))] = 1
 
-        #f, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(24, 9))
-        #y_area_of_image = [(img_areas - (i + 1)) / img_areas, (img_areas - i) / img_areas]
-        #ax1.imshow(warped_combined[int(warped_combined.shape[0] * y_area_of_image[0]):int(warped_combined.shape[0] * y_area_of_image[1]), :], cmap='gray')
-        #ax1.set_title('Original Image', fontsize=20)
-        #pd.DataFrame(histogram).plot(ax=ax2)
-        #ax2.set_title('Cobined Threshold', fontsize=20)
-        #lanes.plot(ax=ax3)
-        #ax3.set_title('Cobined Threshold', fontsize=20)
-        #plt.subplots_adjust(left=0.05, right=0.95, top=0.9, bottom=0.05)
-        #plt.show()
-
     # identified_curve_area[((identified_curve_area == 1) & (warped_combined == 1))] = 1
 
 
@@ -138,7 +127,6 @@ def process_image(raw_image):
     warped_fitted_lane_img = img_transform.warper(fitted_lane_img, src, dst, direction='backward')
 
     blue_image = np.zeros((warped_fitted_lane_img.shape[0], warped_fitted_lane_img.shape[1], 3), np.uint8)
-    # red_image[:,:] = (0, 0, 255)
     blue_image[((warped_fitted_lane_img == 1))] = (255, 0, 0)
     combo = weighted_img(blue_image, raw_image, α=0.8, β=1., λ=0.)
 

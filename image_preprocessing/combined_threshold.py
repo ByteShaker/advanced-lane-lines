@@ -13,6 +13,7 @@ import image_preprocessing.image_position as img_position
 import perspective_transform.image_transform as img_transform
 
 import toolbox.multiple_image_out as mio
+import toolbox.multiple_plots_out as mpo
 
 #Todo: Ersetzt durch cv2.bitwise_and
 def bitwise_AND_images(img1, img2, return_value=255):
@@ -149,35 +150,10 @@ if __name__ == "__main__":
     cv2.imshow('Combined Tresholds Overview', new_image)
     cv2.waitKey(0)
 
-    # Plot the result
-    #f, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(24, 9))
-    #f, (ax1, ax2, ax3, ax4) = plt.subplots(1, 4, figsize=(24, 9))
-    #f.tight_layout()
-    #ax1.imshow(combo1, cmap='gray')
-    #ax1.set_title('Original Image', fontsize=20)
-    #ax2.imshow(combo2, cmap='gray')
-    #ax2.set_title('Magnitude', fontsize=20)
-    #ax3.imshow(combo3, cmap='gray')
-    #ax3.set_title('Direction', fontsize=20)
-    #ax4.imshow(warped_combined, cmap='gray')
-    #ax4.set_title('Combination', fontsize=20)
-    #plt.subplots_adjust(left=0., right=1, top=0.9, bottom=0.)
-
-    #plt.show()
-
-
-
-
     histogram = np.sum(warped_combined[int(warped_combined.shape[0] * 2/3):, :], axis=0)
     histogram_df = pd.DataFrame(histogram)
 
     Series = histogram_df[0].rolling(window=200, axis=0, center=True, win_type='gaussian').mean(std=10.0)
 
     histogram_df['Peak_Filter'] = Series
-    Series.plot.area()
-
-    #plt.show()
-
-    plt.plot(histogram)
-
-    #plt.show()
+    mpo.plot_cluster([Series])

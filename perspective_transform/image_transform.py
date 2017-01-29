@@ -5,18 +5,20 @@ import matplotlib.pyplot as plt
 import glob
 import pickle
 
+import toolbox.multiple_plots_out as mpo
+
 def perform_initial_sourcepoints():
     src = np.float32(
-            [[515, 500],
+            [[602, 444],
              [220, 705],
              [1083, 705],
-             [763, 500]])
+             [678, 444]])
 
     dst = np.float32(
-            [[400, 20],
-             [400, 700],
-             [880, 700],
-             [880, 20]])
+            [[540, 0],
+             [540, 720],
+             [740, 720],
+             [740, 0]])
 
     return (src, dst)
 
@@ -37,19 +39,10 @@ def warper(img, src, dst, direction='forward'):
 if __name__ == "__main__":
 
     # Read in an image and grayscale it
-    image = cv2.imread('../test_images/straight_lines2.jpg')
+    image = cv2.imread('../test_images/test6.jpg')
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
     src, dst = perform_initial_sourcepoints()
     warped_image = warper(image, src, dst)
 
-    # Plot the result
-    f, (ax1, ax2) = plt.subplots(1, 2, figsize=(24, 9))
-    f.tight_layout()
-    ax1.imshow(image)
-    ax1.set_title('Original Image', fontsize=50)
-    ax2.imshow(warped_image, cmap='gray')
-    ax2.set_title('Thresholded S', fontsize=50)
-    plt.subplots_adjust(left=0., right=1, top=0.9, bottom=0.)
-
-    plt.show()
+    mpo.plot_cluster([image, warped_image], img_text=['Original Image', 'Warped Image'])

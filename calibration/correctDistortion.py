@@ -36,7 +36,6 @@ def correct_distortion(img, mtx=None, dist=None, camera_calibration_values='../c
 
 if __name__ == "__main__":
     # Read in the image
-
     img = cv2.imread('../calibration/camera_cal/calibration1.jpg')
 
     mtx, dist, undistorted = correct_distortion(img)
@@ -52,15 +51,3 @@ if __name__ == "__main__":
     cv2.waitKey(0)
 
     cv2.imwrite('../output_images/undistorted_calibration1.jpg', result)
-
-    #f, (ax1, ax2) = plt.subplots(1, 2, figsize=(24, 9))
-    #f.tight_layout()
-    #ax1.imshow(img)
-    #ax1.set_title('Original Image', fontsize=50)
-    #ax2.imshow(undistorted)
-    #ax2.set_title('Undistorted Image', fontsize=50)
-    #plt.subplots_adjust(left=0., right=1, top=0.9, bottom=0.)
-    #plt.show()
-
-    #undistorted = cv2.cvtColor(undistorted, cv2.COLOR_RGB2BGR)
-    #cv2.imwrite('../output_images/straight_lines2.jpg', undistorted)

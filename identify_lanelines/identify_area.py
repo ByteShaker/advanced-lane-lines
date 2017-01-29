@@ -13,6 +13,21 @@ import image_preprocessing.image_position as img_position
 
 import identify_lanelines.identify_radius as identify_radius
 
+import toolbox.multiple_plots_out as mpo
+
+def weighted_img(img, initial_img, α=0.8, β=1., λ=0.):
+    """
+    `img` is the output of the hough_lines(), An image with lines drawn on it.
+    Should be a blank image (all black) with lines drawn on it.
+
+    `initial_img` should be the image before any processing.
+
+    The result image is computed as follows:
+
+    initial_img * α + img * β + λ
+    NOTE: initial_img and img must be the same shape!
+    """
+    return cv2.addWeighted(initial_img, α, img, β, λ)
 
 def border_control(approx_middle, window, low, high):
     left_border = approx_middle - (window / 2)
@@ -131,21 +146,10 @@ if __name__ == "__main__":
 
         identified_right_curve_area[((identified_right_curve_area >= 1) | (temp_right_img_position >=1))] = 255
 
-        #f, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(24, 9))
-        #y_area_of_image = [(img_areas - (i + 1)) / img_areas, (img_areas - i) / img_areas]
-        #ax1.imshow(warped_combined[int(warped_combined.shape[0] * y_area_of_image[0]):int(warped_combined.shape[0] * y_area_of_image[1]), :], cmap='gray')
-        #ax1.set_title('Original Image', fontsize=20)
-        #pd.DataFrame(histogram).plot(ax=ax2)
-        #ax2.set_title('Cobined Threshold', fontsize=20)
-        #lanes.plot(ax=ax3)
-        #ax3.set_title('Cobined Threshold', fontsize=20)
-        #plt.subplots_adjust(left=0.05, right=0.95, top=0.9, bottom=0.05)
-        #plt.show()
-
     #identified_curve_area[((identified_curve_area == 1) & (warped_combined == 1))] = 1
 
-    cv2.imshow('test', identified_left_curve_area)
-    cv2.waitKey(0)
+    #cv2.imshow('test', identified_left_curve_area)
+    #cv2.waitKey(0)
 
     fitted_lane_img = identify_radius.create_fitted_area(identified_left_curve_area, identified_right_curve_area, abs_left_lane, abs_right_lane)
     warped_fitted_lane_img = img_transform.warper(fitted_lane_img, src, dst, direction='backward')
@@ -157,17 +161,4 @@ if __name__ == "__main__":
 
     #histogram_df['left_Lane'].plot()
 
-    # Plot the result
-    f, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(24, 9))
-    #f.tight_layout()
-    ax1.imshow(image, cmap='gray')
-    ax1.set_title('Original Image', fontsize=20)
-    ax2.imshow(combo, cmap='gray')
-    ax2.set_title('Cobined Threshold', fontsize=20)
-    ax3.imshow(warped_fitted_lane_img, cmap='gray')
-    ax3.set_title('Transformed', fontsize=20)
-    lanes.plot.area(ax=ax4, stacked=True)
-    ax4.set_title('Lane Position', fontsize=20)
-    plt.subplots_adjust(left=0.05, right=0.95, top=0.9, bottom=0.05)
-
-    plt.show()
+    mpo.plot_cluster([image, combo, warped_fitted_lane_img, lanes], img_text=['Original Image', 'Cobined Threshold', 'Transformed', 'Lane Position'], fontsize=18)
