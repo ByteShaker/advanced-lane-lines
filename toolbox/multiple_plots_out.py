@@ -14,7 +14,10 @@ def plot_cluster(img_list=[], img_text=False, new_img_shape=None, cluster_shape=
 
     if new_img_shape == None:
         if isinstance(img_list[0], np.ndarray):
-            new_img_shape = tuple([img_list[0].shape[i] / 100 for i in range(len(img_list[0].shape))])
+            if len(img_list[0].shape) >= 2:
+                new_img_shape = tuple([img_list[0].shape[i] / 100 for i in range(len(img_list[0].shape))])
+            else:
+                new_img_shape = (7.2, 12.8, 0.03)
         else:
             new_img_shape = (7.2, 12.8, 0.03)
 

@@ -45,7 +45,7 @@ def create_fitted_area(left_lane_img, right_lane_img, abs_left_lane, abs_right_l
 
     return fitted_lane_img
 
-def create_fitted_area_1(left_lane_img, right_lane_img, abs_left_lane, abs_right_lane):
+def create_fitted_area_1(left_lane_img, right_lane_img):
     fitted_lane_img = np.zeros_like(left_lane_img, dtype=np.uint8)
     img_shape = fitted_lane_img.shape
 
@@ -72,4 +72,4 @@ def create_fitted_area_1(left_lane_img, right_lane_img, abs_left_lane, abs_right
     #plt.plot(left_fitx, yvals, color='green', linewidth=3)
     #plt.gca().invert_yaxis()  # to visualize as we do the images
 
-    return fitted_lane_img
+    return fitted_lane_img, left_lane_fit, right_lane_fit

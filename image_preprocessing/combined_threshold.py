@@ -67,8 +67,6 @@ def combined_thresholds_1(image):
     l = hls[:, :, 1]
     s = hls[:, :, 2]
 
-    cv2.imshow('Test', s)
-
     one_color_channel = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
     combo = combine_edgeGray_edgeS(one_color_channel, s)
@@ -85,7 +83,7 @@ def combined_thresholds_1(image):
 
     return combo
 
-def combined_thresholds_2(image):
+def combined_thresholds_complete(image, verbose=False):
     hls = cv2.cvtColor(image, cv2.COLOR_BGR2HLS)
     h = hls[:, :, 0]
     l = hls[:, :, 1]
@@ -96,29 +94,28 @@ def combined_thresholds_2(image):
     #combo = combine_edgeGray_edgeS(one_color_channel, s)
 
     color_binary_S = img_color.layer_select(s, 'gray', (100, 255))
-    color_binary_Gray = img_color.layer_select(one_color_channel, 'gray', (150, 255))
+    color_binary_Gray = img_color.layer_select(one_color_channel, 'gray', (200, 255))
 
     mag_binary_S = img_gradient.mag_thresh(s, 9, (50, 255))
     mag_binary_Gray = img_gradient.mag_thresh(one_color_channel, 9, (50, 255))
 
-    #edges_S = cv2.Canny(s, 50, 220, apertureSize=3)
-    #edges_Gray = cv2.Canny(one_color_channel, 50, 220, apertureSize=3)
-
     dir_binary_S = img_gradient.dir_threshold(s, 15, (0 * np.pi / 180, 55 * np.pi / 180))
     dir_binary_Gray = img_gradient.dir_threshold(one_color_channel, 15, (0 * np.pi / 180, 55 * np.pi / 180))
-    #dir_binary = img_gradient.dir_threshold(combo, 15, (0 * np.pi / 180, 45 * np.pi / 180))
 
     combo_S = cv2.bitwise_and(dir_binary_S, cv2.bitwise_and(mag_binary_S, color_binary_S))
     combo_Gray = cv2.bitwise_and(dir_binary_Gray, cv2.bitwise_and(mag_binary_Gray, color_binary_Gray))
 
-    combo3 = cv2.bitwise_or(combo_S, combo_Gray)
+    combo_complete = cv2.bitwise_or(combo_S, combo_Gray)
 
-    new_image = mio.image_cluster(
-        [one_color_channel, s, color_binary_Gray, color_binary_S, mag_binary_Gray, mag_binary_S, dir_binary_Gray, dir_binary_S, combo_Gray, combo_S, combo3, l, h], img_text=['one_color_channel', 's', 'color_binary_Gray', 'color_binary_S', 'mag_binary_Gray', 'mag_binary_S', 'dir_binary_Gray', 'dir_binary_S', 'combo_Gray', 'combo_S', 'combo3'], new_img_shape=(1200, 2260), cluster_shape=(3, 4))
+    if verbose:
+        new_image = mio.image_cluster(
+            [one_color_channel, s, color_binary_Gray, color_binary_S, mag_binary_Gray, mag_binary_S, dir_binary_Gray, dir_binary_S, combo_Gray, combo_S, combo_complete, l, h],
+            img_text=['one_color_channel', 's', 'color_binary_Gray', 'color_binary_S', 'mag_binary_Gray', 'mag_binary_S', 'dir_binary_Gray', 'dir_binary_S', 'combo_Gray', 'combo_S', 'combo3'],
+            new_img_shape=(720, 1280), cluster_shape=(3, 4))
 
-    cv2.imshow('Combination', new_image)
+        cv2.imshow('Combination', new_image)
 
-    return combo3
+    return combo_complete
 
 if __name__ == "__main__":
 
@@ -146,8 +143,8 @@ if __name__ == "__main__":
     s_binary = img_color.layer_select(image, 's', (100, 255))
     gray_binary = img_color.layer_select(image, 'gray', (150, 225))
 
-    mag_binary_S = img_gradient.mag_thresh(s, 9, (30, 255))
-    mag_binary_Gray = img_gradient.mag_thresh(one_color_channel, 9, (30, 255))
+    mag_binary_S = img_gradient.mag_thresh(s, 3, (30, 255))
+    mag_binary_Gray = img_gradient.mag_thresh(one_color_channel, 3, (30, 255))
     dir_binary = img_gradient.dir_threshold(combo, 15, (35 * np.pi / 180, 65 * np.pi / 180))
 
     retval, hlv_V_binary = cv2.threshold(hlv_V.astype('uint8'), 150, 255, cv2.THRESH_BINARY)
@@ -161,8 +158,6 @@ if __name__ == "__main__":
 
     gradx = img_gradient.abs_sobel_thresh(one_color_channel, 'x', 9, (20, 255))
     grady = img_gradient.abs_sobel_thresh(one_color_channel, 'y', 9, (20, 255))
-
-
 
 
     position_binary = img_position.position_select(s)
