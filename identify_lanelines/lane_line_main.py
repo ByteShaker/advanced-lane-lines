@@ -59,7 +59,7 @@ def process_image(raw_image, cvtColor='RGB'):
     warped_image = img_transform.warper(raw_image, src, dst)
 
     warped_image_cont = img_color.add_contrast(warped_image)
-    warped_combined = combined_threshold.combined_thresholds_complete(warped_image_cont)
+    warped_combined = combined_threshold.combined_thresholds_complete(warped_image_cont, verbose=True)
 
     # Find Lane Pixels
     if (left_line.detected == False) | (right_line.detected == False):
@@ -97,7 +97,8 @@ def process_image(raw_image, cvtColor='RGB'):
     combo = weighted_img(blue_image, raw_image, α=0.8, β=1., λ=0.)
 
     cv2.imshow('Window3', combo)
-    cv2.waitKey(10)
+    cv2.waitKey(1)
+    combo = cv2.cvtColor(combo, cv2.COLOR_BGR2RGB)
 
     return combo
 
