@@ -50,13 +50,13 @@ def darken_img(image):
     #cv2.imshow('newImage1', newImage1)
     return contrasted_image
 
-def add_contrast(img, verbose=False):
+def add_contrast(img,clipLimit=3.0, tileGridSize=(5,5), verbose=False):
     #-----Converting image to LAB Color model-----------------------------------
     lab= cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
     #-----Splitting the LAB image to different channels-------------------------
     l, a, b = cv2.split(lab)
     #-----Applying CLAHE to L-channel-------------------------------------------
-    clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(5,5))
+    clahe = cv2.createCLAHE(clipLimit, tileGridSize)
     cl = clahe.apply(l)
     #-----Merge the CLAHE enhanced L-channel with the a and b channel-----------
     limg = cv2.merge((cl,a,b))

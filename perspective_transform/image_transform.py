@@ -8,11 +8,17 @@ import pickle
 import toolbox.multiple_plots_out as mpo
 
 def perform_initial_sourcepoints():
+    # src = np.float32(
+    #         [[602, 444],
+    #          [220, 705],
+    #          [1083, 705],
+    #          [678, 444]])
     src = np.float32(
-            [[602, 444],
-             [220, 705],
-             [1083, 705],
-             [678, 444]])
+        [[600, 444],
+         [210, 705],
+         [1070, 705],
+         [680, 444]])
+
 
     dst = np.float32(
             [[540, 0],
@@ -21,6 +27,32 @@ def perform_initial_sourcepoints():
              [740, 0]])
 
     return (src, dst)
+
+def calc_new_sourcepoints(lane_width_bottom=None, lane_width_top=None):
+    inital_px_top = 76
+    image_middle = 640
+    if (lane_width_bottom==None) | (lane_width_top==None):
+        left_pos_top = image_middle - int(inital_px_top / 2)
+        right_pos_top = image_middle + int(inital_px_top / 2)
+    else:
+        new_px_top = (lane_width_top / lane_width_bottom) * inital_px_top
+        left_pos_top = image_middle - int(new_px_top/2)
+        right_pos_top = image_middle + int(new_px_top / 2)
+
+    src = np.float32(
+        [[left_pos_top, 444],
+         [210, 705],
+         [1070, 705],
+         [right_pos_top, 444]])
+
+    dst = np.float32(
+        [[540, 0],
+         [540, 720],
+         [740, 720],
+         [740, 0]])
+
+    return (src, dst)
+
 
 def warper(img, src, dst, direction='forward'):
 

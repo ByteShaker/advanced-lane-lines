@@ -66,8 +66,8 @@ def image_cluster(img_list=[], img_text=False, new_img_shape=None, cluster_shape
             if img_text:
                 if cluster_index < len(img_text):
                     if img_text[cluster_index] != None:
-                        text_position = (col*int(new_img_shape[1]/cluster_shape[1])+100, row*int(new_img_shape[0]/cluster_shape[0])+100)
-                        cv2.putText(new_image, img_text[cluster_index], text_position, cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 5)
+                        text_position = (col*int(new_img_shape[1]/cluster_shape[1])+20, row*int(new_img_shape[0]/cluster_shape[0])+20)
+                        cv2.putText(new_image, img_text[cluster_index], text_position, cv2.FONT_HERSHEY_SIMPLEX, .5, (255, 255, 255), 1)
 
             cluster_index += 1
             if (cluster_index >= len(img_list)):
