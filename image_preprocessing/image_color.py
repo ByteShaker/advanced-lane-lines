@@ -56,7 +56,7 @@ def add_contrast(img, verbose=False):
     #-----Splitting the LAB image to different channels-------------------------
     l, a, b = cv2.split(lab)
     #-----Applying CLAHE to L-channel-------------------------------------------
-    clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8,8))
+    clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(5,5))
     cl = clahe.apply(l)
     #-----Merge the CLAHE enhanced L-channel with the a and b channel-----------
     limg = cv2.merge((cl,a,b))

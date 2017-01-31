@@ -39,7 +39,7 @@ def warper(img, src, dst, direction='forward'):
 if __name__ == "__main__":
 
     # Read in an image and grayscale it
-    image = cv2.imread('../test_images/test6.jpg')
+    image = cv2.imread('../test_images/test5.jpg')
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
     src, dst = perform_initial_sourcepoints()

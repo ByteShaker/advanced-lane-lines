@@ -25,12 +25,12 @@ def perform_image_area(img, area_percentage):
                           (imshape[1], imshape[0])]], dtype=np.int32)
     return img_area
 
-def perform_lane_position(img, left_lane_fit=[2,2,540], right_lane_fit=[0,0,740], area_percentage=1):
+def perform_lane_position(img, left_lane_fit=[0,0,540], right_lane_fit=[0,0,740], area_percentage=1):
     left_lane_binary = np.zeros_like(img, dtype=np.uint8)
     right_lane_binary = np.zeros_like(img, dtype=np.uint8)
     area_binary = np.zeros_like(img, dtype=np.uint8)
     yvals = np.array(range(img.shape[0]))
-    lane_range = (10 + ((img.shape[0]-yvals)/ img.shape[0]) * 30)
+    lane_range = (10 + ((img.shape[0]-yvals)/ img.shape[0]) * 10)
 
     left_left_fitx = left_lane_fit[0] * yvals ** 2 + left_lane_fit[1] * yvals + left_lane_fit[2] - lane_range
     left_right_fitx = left_lane_fit[0] * yvals ** 2 + left_lane_fit[1] * yvals + left_lane_fit[2] + lane_range

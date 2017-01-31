@@ -72,8 +72,12 @@ def process_image(raw_image, cvtColor='RGB'):
                                                                                                      area_percentage=.5)
         left_line.detected = True
         right_line.detected = True
-    else:
-        identified_left_curve_area, identified_right_curve_area = img_position.perform_lane_position(warped_combined,
+        fitted_lane_img, left_lane_fit, right_lane_fit, left_curverad, right_curverad, car_2_centerline = identify_radius.create_fitted_area_1(identified_left_curve_area, identified_right_curve_area)
+
+        left_line.best_fit = left_lane_fit
+        right_line.best_fit = right_lane_fit
+
+    identified_left_curve_area, identified_right_curve_area = img_position.perform_lane_position(warped_combined,
                                                                                                     left_lane_fit=left_line.best_fit,
                                                                                                     right_lane_fit=right_line.best_fit,
                                                                                                     area_percentage=1)
@@ -86,7 +90,7 @@ def process_image(raw_image, cvtColor='RGB'):
     # identified_left_curve_area, identified_right_curve_area = identify_area.identify_curve_area(warped_combined, abs_left_lane, abs_right_lane, verbose=False)
 
 
-    fitted_lane_img, left_lane_fit, right_lane_fit = identify_radius.create_fitted_area_1(identified_left_curve_area, identified_right_curve_area)
+    fitted_lane_img, left_lane_fit, right_lane_fit, left_curverad, right_curverad, car_2_centerline = identify_radius.create_fitted_area_1(identified_left_curve_area, identified_right_curve_area)
 
     left_line.best_fit = left_lane_fit
     right_line.best_fit = right_lane_fit
@@ -95,6 +99,20 @@ def process_image(raw_image, cvtColor='RGB'):
     blue_image = np.zeros((warped_fitted_lane_img.shape[0], warped_fitted_lane_img.shape[1], 3), np.uint8)
     blue_image[((warped_fitted_lane_img == 1))] = (255, 0, 0)
     combo = weighted_img(blue_image, raw_image, α=0.8, β=1., λ=0.)
+
+    curve_radius_mean = (left_curverad + right_curverad) / 2
+    add_text = 'Radius of Curvature = %0.1f(Meter)' %curve_radius_mean
+    cv2.putText(combo, add_text, (100, 150), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 1)
+
+    if car_2_centerline > 0:
+        add_text = 'Car drives %0.2f Meter right of Center' %car_2_centerline
+        cv2.putText(combo, add_text, (100, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 1)
+    elif car_2_centerline == 0:
+        add_text = 'Car drives in the Center' %car_2_centerline
+        cv2.putText(combo, add_text, (100, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 1)
+    elif car_2_centerline < 0:
+        add_text = 'Car drives %0.2f Meter left of Center' %(-car_2_centerline)
+        cv2.putText(combo, add_text, (100, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 1)
 
     cv2.imshow('Window3', combo)
     cv2.waitKey(1)
@@ -107,16 +125,16 @@ if __name__ == "__main__":
     left_line = line_class.Line()
     right_line = line_class.Line()
 
-    #image = cv2.imread('../test_images/straight_lines2.jpg')
+    #image = cv2.imread('../test_images/test5.jpg')
     #combo = process_image(image)
     #cv2.imshow('Window', combo)
     #cv2.waitKey(1000)
 
-    white_output = '../white_3.mp4'
-    clip1 = VideoFileClip('../project_video.mp4')
-    #clip1 = VideoFileClip('../challenge_video.mp4')
+    video_output = '../challenge_video_calc.mp4'
+    #clip1 = VideoFileClip('../project_video.mp4')
+    clip1 = VideoFileClip('../challenge_video.mp4')
     #clip1 = VideoFileClip('../harder_challenge_video.mp4')
 
 
     white_clip_1 = clip1.fl_image(process_image)  # NOTE: this function expects color images!!
-    white_clip_1.write_videofile(white_output, audio=False)
+    white_clip_1.write_videofile(video_output, audio=False)

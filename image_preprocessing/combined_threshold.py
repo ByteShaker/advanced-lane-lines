@@ -94,13 +94,13 @@ def combined_thresholds_complete(image, verbose=False):
     #combo = combine_edgeGray_edgeS(one_color_channel, s)
 
     color_binary_S = img_color.layer_select(s, 'gray', (100, 255))
-    color_binary_Gray = img_color.layer_select(one_color_channel, 'gray', (200, 255))
+    color_binary_Gray = img_color.layer_select(one_color_channel, 'gray', (180, 255))
 
-    mag_binary_S = img_gradient.mag_thresh(s, 9, (50, 255))
-    mag_binary_Gray = img_gradient.mag_thresh(one_color_channel, 9, (50, 255))
+    mag_binary_S = img_gradient.mag_thresh(s, 21, (30, 255))
+    mag_binary_Gray = img_gradient.mag_thresh(one_color_channel, 21, (30, 255))
 
-    dir_binary_S = img_gradient.dir_threshold(s, 15, (0 * np.pi / 180, 55 * np.pi / 180))
-    dir_binary_Gray = img_gradient.dir_threshold(one_color_channel, 15, (0 * np.pi / 180, 55 * np.pi / 180))
+    dir_binary_S = img_gradient.dir_threshold(s, 11, (0 * np.pi / 180, 55 * np.pi / 180))
+    dir_binary_Gray = img_gradient.dir_threshold(one_color_channel, 11, (0 * np.pi / 180, 55 * np.pi / 180))
 
     combo_S = cv2.bitwise_and(dir_binary_S, cv2.bitwise_and(mag_binary_S, color_binary_S))
     combo_Gray = cv2.bitwise_and(dir_binary_Gray, cv2.bitwise_and(mag_binary_Gray, color_binary_Gray))
@@ -114,6 +114,7 @@ def combined_thresholds_complete(image, verbose=False):
             new_img_shape=(720, 1280), cluster_shape=(3, 4))
 
         cv2.imshow('Combination', new_image)
+        #cv2.waitKey(0)
 
     return combo_complete
 
