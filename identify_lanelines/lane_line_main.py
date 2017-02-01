@@ -46,6 +46,8 @@ def detect_lane_lines():
 def process_image(raw_image, cvtColor='RGB'):
     # Correct Distortion with calculated Camera Calibration (If not present calibrate)
     global MTX, DIST
+    #global left_line, right_line
+
     mtx, dist, raw_image = correctDistortion.correct_distortion(raw_image, mtx=MTX, dist=DIST)
     if (MTX == None) | (DIST == None):
         MTX = mtx
@@ -55,18 +57,18 @@ def process_image(raw_image, cvtColor='RGB'):
     if cvtColor == 'RGB':
         raw_image = cv2.cvtColor(raw_image, cv2.COLOR_RGB2BGR)
 
-    if (left_line.detected == False) | (right_line.detected == False):
-        lane_width_bottom = None
-        lane_width_top = None
+    lane_width_bottom, lane_width_top, bottom_angle = img_transform.calc_correct_transform(left_line, right_line)
+
+    if (lane_width_bottom == None) | (lane_width_top==None):
+        pass
     else:
-        lane_width_bottom = np.mean(right_line.recent_xfitted) - np.mean(left_line.recent_xfitted)
-        lane_width_top = np.mean(right_line.recent_xfitted_top) - np.mean(left_line.recent_xfitted_top)
+        master_lane.add_new_lanefit(lane_width_bottom, lane_width_top, bottom_angle)
 
-    src, dst = img_transform.calc_new_sourcepoints(lane_width_bottom, lane_width_top)
+    src, dst = img_transform.calc_new_sourcepoints(master_lane.mean_lane_width_bottom, master_lane.mean_lane_width_top, master_lane.mean_bottom_angle)
+    #src, dst = img_transform.perform_initial_sourcepoints()
+
     warped_image = img_transform.warper(raw_image, src, dst)
-
     warped_combined = combined_threshold.combined_thresholds_complete(warped_image, verbose=True)
-
 
     # Find Lane Pixels
     if (left_line.detected == False) | (right_line.detected == False):
@@ -77,6 +79,7 @@ def process_image(raw_image, cvtColor='RGB'):
                                                                                                      left_lane_fit=[0,0,left_lane],
                                                                                                      right_lane_fit=[0,0,right_lane],
                                                                                                      area_percentage=.3)
+
         left_lane_fit = identify_radius.fit_lane_line(identified_left_curve_area)
         right_lane_fit = identify_radius.fit_lane_line(identified_right_curve_area)
 
@@ -87,23 +90,28 @@ def process_image(raw_image, cvtColor='RGB'):
             right_line.detected = True
             right_line.best_fit = right_lane_fit
 
-    identified_left_curve_area, identified_right_curve_area = img_position.perform_lane_position(warped_combined,
-                                                                                                    left_lane_fit=left_line.best_fit,
-                                                                                                    right_lane_fit=right_line.best_fit,
-                                                                                                    area_percentage=1)
 
-    fitted_lane_img, left_lane_fit, right_lane_fit, left_fitx, right_fitx, yvals = identify_radius.create_fitted_area_1(identified_left_curve_area, identified_right_curve_area)
+    identified_left_curve_area, identified_right_curve_area = img_position.perform_lane_position(warped_combined,
+                                                                                                left_lane_fit=left_line.best_fit,
+                                                                                                right_lane_fit=right_line.best_fit,
+                                                                                                area_percentage=1)
+
+    left_fitx, left_lane_fit, yvals = identify_radius.create_fitted_area_1(identified_left_curve_area)
+    right_fitx, right_lane_fit, yvals = identify_radius.create_fitted_area_1(identified_right_curve_area)
 
     left_line.add_new_linefit(left_fitx, left_lane_fit, yvals)
     right_line.add_new_linefit(right_fitx, right_lane_fit, yvals)
 
-    left_line.recent_xfitted = (left_fitx[-1])
-    right_line.recent_xfitted = (right_fitx[-1])
-    left_line.recent_xfitted_top = (left_fitx[600])
-    right_line.recent_xfitted_top = (right_fitx[600])
+    #left_line.recent_xfitted = (left_fitx[-1])
+    #right_line.recent_xfitted = (right_fitx[-1])
+    #left_line.recent_xfitted_top = (left_fitx[600])
+    #right_line.recent_xfitted_top = (right_fitx[600])
 
-    left_line.best_fit = left_lane_fit
-    right_line.best_fit = right_lane_fit
+    #left_line.best_fit = left_lane_fit
+    #right_line.best_fit = right_lane_fit
+
+    fitted_lane_img = identify_radius.create_fitted_lane_img(left_line.current_fit, right_line.current_fit, left_line.ally)
+
     warped_fitted_lane_img = img_transform.warper(fitted_lane_img, src, dst, direction='backward')
 
     blue_image = np.zeros((warped_fitted_lane_img.shape[0], warped_fitted_lane_img.shape[1], 3), np.uint8)
@@ -112,8 +120,13 @@ def process_image(raw_image, cvtColor='RGB'):
 
     car_2_centerline = (left_line.line_base_pos/ 2.) - (right_line.line_base_pos/ 2.)
     curve_radius_mean = (left_line.radius_of_curvature + right_line.radius_of_curvature) / 2
+
     add_text = 'Radius of Curvature = %0.1f(Meter)' %curve_radius_mean
     cv2.putText(combo, add_text, (100, 150), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 1)
+
+    cv2.putText(combo, str(left_line.radius_of_curvature), (100, 200), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 1)
+    cv2.putText(combo, str(right_line.radius_of_curvature), (100, 250), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 1)
+    cv2.putText(combo, str(master_lane.mean_lane_width_bottom), (100, 300), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 1)
 
     if car_2_centerline > 0:
         add_text = 'Car drives %0.2f Meter right of Center' %car_2_centerline
@@ -136,12 +149,14 @@ if __name__ == "__main__":
     left_line = line_class.Line()
     right_line = line_class.Line()
 
+    master_lane = line_class.Lane()
+
     #image = cv2.imread('../test_images/test5.jpg')
     #combo = process_image(image)
     #cv2.imshow('Window', combo)
     #cv2.waitKey(1000)
 
-    video_output = '../project_video_calc_3.mp4'
+    video_output = '../project_video_calc_5.mp4'
     clip1 = VideoFileClip('../project_video.mp4')
     #clip1 = VideoFileClip('../challenge_video.mp4')
     #clip1 = VideoFileClip('../harder_challenge_video.mp4')

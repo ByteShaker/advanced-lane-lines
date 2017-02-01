@@ -96,15 +96,15 @@ def combined_thresholds_complete(image, verbose=False):
     l = hls[:, :, 1]
     s = hls[:, :, 2]
 
-    one_color_channel = cv2.cvtColor(warped_image_cont_blur, cv2.COLOR_BGR2GRAY)
+    one_color_channel = cv2.cvtColor(warped_image_cont, cv2.COLOR_BGR2GRAY)
 
     #combo = combine_edgeGray_edgeS(one_color_channel, s)
 
     color_binary_S = img_color.layer_select(s, 'gray', (100, 255))
-    color_binary_Gray = img_color.layer_select(one_color_channel, 'gray', (180, 255))
+    color_binary_Gray = img_color.layer_select(one_color_channel, 'gray', (200, 255))
 
     mag_binary_S = img_gradient.mag_thresh(s, 21, (30, 255))
-    mag_binary_Gray = img_gradient.mag_thresh(one_color_channel, 21, (30, 255))
+    mag_binary_Gray = img_gradient.mag_thresh(one_color_channel, 21, (50, 255))
 
     dir_binary_S = img_gradient.dir_threshold(mag_binary_S, 9, (0 * np.pi / 180, 55 * np.pi / 180))
     dir_binary_Gray = img_gradient.dir_threshold(mag_binary_Gray, 9, (0 * np.pi / 180, 45 * np.pi / 180))

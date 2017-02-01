@@ -25,15 +25,45 @@ def perform_image_area(img, area_percentage):
                           (imshape[1], imshape[0])]], dtype=np.int32)
     return img_area
 
-def perform_lane_position(img, left_lane_fit=[0,0,540], right_lane_fit=[0,0,740], area_percentage=1, lane_range_bottom=10, lane_range_top=10):
+def calculate_line_shape_area(line_fit, shape_structure = [20,15,10], ymax=720):
+    #shape_structure = [20,15,10]
+    dedicated_points = [0, ymax/2, ymax]
+
+    angle=[0,0,0]
+    new_y=[0,0,0]
+    new_line_fit = [0,0,0]
+    for i in range(len(dedicated_points)):
+        angle[i] = 2 * line_fit[0] * dedicated_points[i] + line_fit[1]
+        if angle[i] == 0:
+            new_y[i] = dedicated_points[i]
+        else:
+            new_y[i] = shape_structure[i] / (-1/angle[i])
+        new_y[i] = dedicated_points[i] + new_y[i]
+
+    new_line_fit[0] = (angle[1] - angle[0]) / (2 * (new_y[1] - new_y[0]))
+    new_line_fit[1] = angle[0] - (2 * new_line_fit[1] * new_y[0])
+    new_line_fit[2] = (line_fit[0] - new_line_fit[0]) * np.power(dedicated_points[2],2) + (line_fit[1] - new_line_fit[1]) * dedicated_points[2] + line_fit[2] + shape_structure[2]
+    #Todo: Annahme entfernen
+
+    return new_line_fit
+
+def perform_lane_position(img, left_lane_fit=[0,0,540], right_lane_fit=[0,0,740], area_percentage=1, lane_range_bottom=10, lane_range_change=10):
     left_lane_binary = np.zeros_like(img, dtype=np.uint8)
     right_lane_binary = np.zeros_like(img, dtype=np.uint8)
     area_binary = np.zeros_like(img, dtype=np.uint8)
     yvals = np.array(range(img.shape[0]))
-    lane_range = (lane_range_bottom + ((img.shape[0]-yvals)/ img.shape[0]) * lane_range_top)
+    #lane_range = (lane_range_bottom + ((img.shape[0]-yvals)/ img.shape[0]) * lane_range_change)
 
-    left_left_fitx = left_lane_fit[0] * yvals ** 2 + left_lane_fit[1] * yvals + left_lane_fit[2] - lane_range
-    left_right_fitx = left_lane_fit[0] * yvals ** 2 + left_lane_fit[1] * yvals + left_lane_fit[2] + lane_range
+    shape_structure_right = [20, 15, 10]
+    shape_structure_left = [-20, -15, -10]
+
+    #left_left_fitx = left_lane_fit[0] * yvals ** 2 + left_lane_fit[1] * yvals + left_lane_fit[2] - lane_range
+    #left_right_fitx = left_lane_fit[0] * yvals ** 2 + left_lane_fit[1] * yvals + left_lane_fit[2] + lane_range
+
+    left_left_fit = calculate_line_shape_area(left_lane_fit, shape_structure=shape_structure_left)
+    left_left_fitx = left_left_fit[0] * yvals ** 2 + left_left_fit[1] * yvals + left_left_fit[2]
+    left_right_fit = calculate_line_shape_area(left_lane_fit, shape_structure=shape_structure_right)
+    left_right_fitx = left_right_fit[0] * yvals ** 2 + left_right_fit[1] * yvals + left_right_fit[2]
 
     # Recast the x and y points into usable format for cv2.fillPoly()
     pts_left_left = np.array([np.transpose(np.vstack([left_left_fitx, yvals]))])
@@ -41,16 +71,21 @@ def perform_lane_position(img, left_lane_fit=[0,0,540], right_lane_fit=[0,0,740]
     pts_left = np.hstack((pts_left_left, pts_left_right))
 
 
-    right_left_fitx = right_lane_fit[0] * yvals ** 2 + right_lane_fit[1] * yvals + right_lane_fit[2] - lane_range
-    right_right_fitx = right_lane_fit[0] * yvals ** 2 + right_lane_fit[1] * yvals + right_lane_fit[2] + lane_range
+    #right_left_fitx = right_lane_fit[0] * yvals ** 2 + right_lane_fit[1] * yvals + right_lane_fit[2] - lane_range
+    #right_right_fitx = right_lane_fit[0] * yvals ** 2 + right_lane_fit[1] * yvals + right_lane_fit[2] + lane_range
+
+    right_left_fit = calculate_line_shape_area(right_lane_fit, shape_structure=shape_structure_left)
+    right_left_fitx = right_left_fit[0] * yvals ** 2 + right_left_fit[1] * yvals + right_left_fit[2]
+    right_right_fit = calculate_line_shape_area(right_lane_fit, shape_structure=shape_structure_right)
+    right_right_fitx = right_right_fit[0] * yvals ** 2 + right_right_fit[1] * yvals + right_right_fit[2]
 
     # Recast the x and y points into usable format for cv2.fillPoly()
     pts_right_left = np.array([np.transpose(np.vstack([right_left_fitx, yvals]))])
     pts_right_right = np.array([np.flipud(np.transpose(np.vstack([right_right_fitx, yvals])))])
     pts_right = np.hstack((pts_right_left, pts_right_right))
 
-
     area_select = perform_image_area(img, area_percentage)
+
 
 
     # Draw the lane onto the warped blank image
@@ -93,6 +128,7 @@ def position_select(img, position_select=None, ignore_mask_color=255):
 
 
 if __name__ == "__main__":
+    calculate_line_shape_area([-0.8,1,0])
 
     # Read in an image and grayscale it
     image = cv2.imread('../test_images/test1.jpg')
@@ -100,4 +136,4 @@ if __name__ == "__main__":
 
     position_select_binary = position_select(image, ignore_mask_color=255)
 
-    mpo.plot_cluster([image, position_select_binary], img_text=['Original Image', 'Position Select'])
+    #mpo.plot_cluster([image, position_select_binary], img_text=['Original Image', 'Position Select'])
