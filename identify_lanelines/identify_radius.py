@@ -5,8 +5,7 @@ from scipy.sparse import coo_matrix
 import cv2
 
 def fit_lane_line(lane_img):
-    # Fit a second order polynomial to each fake lane line
-
+    # Fit a second order polynomial
     coo_lane_img = coo_matrix(lane_img)
 
     yvals = coo_lane_img.row
@@ -74,16 +73,6 @@ def create_fitted_area(left_lane_img, right_lane_img, abs_left_lane, abs_right_l
     #plt.gca().invert_yaxis()  # to visualize as we do the images
 
     return fitted_lane_img
-
-def create_fitted_area_1(lane_img):
-    img_shape = lane_img.shape
-
-    lane_fit = fit_lane_line(lane_img)
-
-    yvals = np.array(range(img_shape[0]))
-    fitx = lane_fit[0] * yvals ** 2 + lane_fit[1] * yvals + lane_fit[2]
-
-    return fitx, lane_fit, yvals
 
 def create_fitted_lane_img(left_line_fit, right_line_fit, yvals):
     fitted_lane_img = np.zeros((720, 1280), dtype=np.uint8)

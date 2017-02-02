@@ -62,8 +62,8 @@ def perform_lane_position(img, left_lane_fit=[0,0,540], right_lane_fit=[0,0,740]
     yvals = np.array(range(img.shape[0]))
     #lane_range = (lane_range_bottom + ((img.shape[0]-yvals)/ img.shape[0]) * lane_range_change)
 
-    shape_structure_right = [40, 30, 20]
-    shape_structure_left = [-40, -30, -20]
+    shape_structure_right = [30, 20, 10]
+    shape_structure_left = [-30, -20, -10]
 
     #left_left_fitx = left_lane_fit[0] * yvals ** 2 + left_lane_fit[1] * yvals + left_lane_fit[2] - lane_range
     #left_right_fitx = left_lane_fit[0] * yvals ** 2 + left_lane_fit[1] * yvals + left_lane_fit[2] + lane_range

@@ -7,11 +7,11 @@ class Lane():
         # was the line detected in the last iteration?
         self.detected = False
         # x values of the last n fits of the line
-        self.x_lane_width_bottom = None
+        self.x_lane_width_bottom = np.array([200,200,200])
         # x values of the last n fits of the line
-        self.x_lane_width_top = None
+        self.x_lane_width_top = np.array([200,200,200])
         # x values of the last n fits of the line
-        self.x_bottom_angle = np.zeros(3)
+        self.x_bottom_angle = np.zeros(20)
         #Means
         self.mean_lane_width_bottom = None
         self.mean_lane_width_top = None
@@ -59,6 +59,7 @@ class Line():
     def __init__(self,number_of_fits_in_memory=3):
         # was the line detected in the last iteration?
         self.detected = False
+        self.image_area_percentage = .6
         # x values of the last n fits of the line
         self.recent_xfitted = None
         #average x values of the fitted line over the last n iterations
@@ -81,13 +82,17 @@ class Line():
         self.number_of_fits_in_memory = number_of_fits_in_memory
 
 
-    def add_new_linefit(self, fitx, lane_fit, yvals):
+    def add_new_linefit(self, lane_fit, yvals):
 
-        approved = self.proof_new_line_fit(lane_fit, yvals)
+        fitx = lane_fit[0] * yvals ** 2 + lane_fit[1] * yvals + lane_fit[2]
+
+        if self.best_fit==None:
+            approved=True
+        else:
+            approved = self.proof_new_line_fit(lane_fit, yvals)
         print(approved)
 
-        if approved | (self.recent_xfitted == None):
-            print('test')
+        if approved:
             fitx = np.array(fitx, ndmin=2)
             if self.recent_xfitted == None:
                 self.recent_xfitted = fitx
@@ -110,9 +115,11 @@ class Line():
             self.ally = yvals
 
             self.detected = True
-
+            self.image_area_percentage = .6
         else:
-            pass
+            self.detected = False
+            #self.best_fit = None
+            self.image_area_percentage = 1
 
     def proof_new_line_fit(self, lane_fit, yvals):
         #print(self.current_fit, lane_fit)
@@ -123,4 +130,4 @@ class Line():
         squared_error = np.sum(np.power(delta_fitx, 2))
         #print(squared_error)
 
-        return squared_error < 10000000
+        return squared_error < 200000

@@ -88,8 +88,9 @@ def gamma_correction(img, correction):
     img = cv2.pow(img, correction)
     return np.uint8(img*255)
 
-def gamma_equalize(img, repetition=1, correction=2):
+def gamma_equalize(img, repetition=1, correction=2, thresh=[50,255]):
     for i in range(repetition):
+        #cv2.threshold(img.astype('uint8'), thresh[0], thresh[1], cv2.THRESH_BINARY)
         img = cv2.equalizeHist(img)
         img = gamma_correction(img, correction)
 
@@ -107,17 +108,17 @@ def combined_thresholds_complete(image, verbose=False):
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
     hsv_h, hsv_s, hsv_v = cv2.split(hsv)
 
-    hsv_gamma_equal = gamma_equalize(hsv_v, 4, 6)
+    hsv_gamma_equal_dark = gamma_equalize(hsv_v, 3, 8)
+    #hsv_gamma_equal_light = gamma_equalize(hsv_v, 3, .8)
 
-    hsv = cv2.merge((hsv_h, hsv_s, hsv_gamma_equal))
+    hsv = cv2.merge((hsv_h, hsv_s, hsv_gamma_equal_dark))
     hsv = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
 
-    mag_binary_V = img_gradient.mag_thresh(hsv_gamma_equal, 7, (50, 255))
-    dir_binary_V = img_gradient.dir_threshold(hsv_gamma_equal, 5, (0 * np.pi / 180, 55 * np.pi / 180))
-    combo_complete_3 = cv2.bitwise_and(dir_binary_V, mag_binary_V)
+    mag_binary_V = img_gradient.mag_thresh(hsv_gamma_equal_dark, 7, (50, 255))
+    dir_binary_V = img_gradient.dir_threshold(hsv_gamma_equal_dark, 5, (0 * np.pi / 180, 55 * np.pi / 180))
+    combo_complete_dark = cv2.bitwise_and(dir_binary_V, mag_binary_V)
 
-
-    hurra = mio.image_cluster([hsv, hsv_gamma_equal, mag_binary_V, dir_binary_V, combo_complete_3])
+    hurra = mio.image_cluster([hsv, hsv_gamma_equal_dark, mag_binary_V, dir_binary_V, combo_complete_dark])
     cv2.imshow('hurra', hurra)
 
     #hls = cv2.cvtColor(hsv, cv2.COLOR_BGR2HLS)
@@ -165,7 +166,7 @@ def combined_thresholds_complete(image, verbose=False):
     #     cv2.imshow('Combination', new_image)
     #     #cv2.waitKey(0)
 
-    return combo_complete_3
+    return combo_complete_dark
 
 if __name__ == "__main__":
 

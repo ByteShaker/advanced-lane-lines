@@ -47,8 +47,8 @@ def calc_cross_parallel_point(base_fit, second_fit):
 
     return cross_parallel_point
 
-def calc_correct_transform(left_line, right_line, trust_detection=True):
-    image_middle = 638
+def calc_correct_transform(left_line, right_line, look_at_image_area_percentage=1, img_shape=(720,1280), trust_detection=True):
+    image_middle = int(img_shape[1]/2)
 
     if (left_line.detected == False) | (right_line.detected == False):
         lane_width_bottom = None
@@ -62,13 +62,13 @@ def calc_correct_transform(left_line, right_line, trust_detection=True):
         bottom_angle = (left_bottom_angle + right_bottom_angle) / 2.
 
         #Correct Trapez
-        curve_type = ((left_line.bestx[0] + right_line.bestx[0]) / 2) - image_middle
+        curve_type = np.mean([left_line.current_fit[0], left_line.current_fit[0]])
         lane_width_bottom = (right_line.bestx[-1]) - (left_line.bestx[-1])
 
         if curve_type >= 0: # right curve
             base_fit = left_line.current_fit
             second_fit = right_line.current_fit
-            parallel_point_y = calc_cross_parallel_point(base_fit, right_line.best_fit)
+            parallel_point_y = calc_cross_parallel_point(base_fit, second_fit)
             parallel_point_x = second_fit[0] * parallel_point_y ** 2 + second_fit[1] * parallel_point_y + second_fit[2]
 
             lane_width_top = np.sqrt((np.power(parallel_point_y, 2) + np.power(parallel_point_x - left_line.bestx[0], 2)))
