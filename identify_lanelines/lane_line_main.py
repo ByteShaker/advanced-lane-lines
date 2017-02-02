@@ -96,19 +96,17 @@ def process_image(raw_image, cvtColor='RGB'):
                                                                                                 right_lane_fit=right_line.best_fit,
                                                                                                 area_percentage=1)
 
+    test = mio.image_cluster([identified_left_curve_area, identified_right_curve_area])
+    cv2.imshow('test', test)
+
     left_fitx, left_lane_fit, yvals = identify_radius.create_fitted_area_1(identified_left_curve_area)
     right_fitx, right_lane_fit, yvals = identify_radius.create_fitted_area_1(identified_right_curve_area)
 
+    #left_line.proof_new_line_fit(left_lane_fit, yvals)
+    #right_line.proof_new_line_fit(right_lane_fit, yvals)
+
     left_line.add_new_linefit(left_fitx, left_lane_fit, yvals)
     right_line.add_new_linefit(right_fitx, right_lane_fit, yvals)
-
-    #left_line.recent_xfitted = (left_fitx[-1])
-    #right_line.recent_xfitted = (right_fitx[-1])
-    #left_line.recent_xfitted_top = (left_fitx[600])
-    #right_line.recent_xfitted_top = (right_fitx[600])
-
-    #left_line.best_fit = left_lane_fit
-    #right_line.best_fit = right_lane_fit
 
     fitted_lane_img = identify_radius.create_fitted_lane_img(left_line.current_fit, right_line.current_fit, left_line.ally)
 

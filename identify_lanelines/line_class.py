@@ -3,7 +3,7 @@ import numpy as np
 import identify_lanelines.identify_radius as identify_radius
 
 class Lane():
-    def __init__(self, number_of_fits_in_memory=20):
+    def __init__(self, number_of_fits_in_memory=100):
         # was the line detected in the last iteration?
         self.detected = False
         # x values of the last n fits of the line
@@ -66,7 +66,7 @@ class Line():
         #polynomial coefficients averaged over the last n iterations
         self.best_fit = None
         #polynomial coefficients for the most recent fit
-        self.current_fit = [np.array([False])]
+        self.current_fit = np.array([0, 0, 0], ndmin=1)
         #radius of curvature of the line in some units
         self.radius_of_curvature = None
         #distance in meters of vehicle center from the line
@@ -82,6 +82,9 @@ class Line():
 
 
     def add_new_linefit(self, fitx, lane_fit, yvals):
+
+        self.proof_new_line_fit(lane_fit, yvals)
+
         fitx = np.array(fitx, ndmin=2)
         if self.recent_xfitted == None:
             self.recent_xfitted = fitx
@@ -94,16 +97,22 @@ class Line():
         self.bestx = np.mean(self.recent_xfitted, axis=0)
 
         self.best_fit = np.polyfit(yvals, self.bestx, 2)
-        self.current_fit = lane_fit #one step back
+        self.current_fit = lane_fit
 
         self.radius_of_curvature = identify_radius.calc_curve_radius(self.bestx, yvals, max(yvals))
         self.line_base_pos = identify_radius.calc_car_2_line(self.bestx[-1])
 
-        self.diffs = self.current_fit - lane_fit
+        #self.diffs = self.current_fit - lane_fit
         self.allx = fitx
         self.ally = yvals
 
         self.detected = True
 
-    def proof_new_line_fit(self, fitx, lane_fit, yvals):
-        pass
+    def proof_new_line_fit(self, lane_fit, yvals):
+        #print(self.current_fit, lane_fit)
+        self.diffs = self.current_fit - lane_fit
+        #print(self.diffs)
+        delta_fitx = self.diffs[0] * yvals ** 2 + self.diffs[1] * yvals + self.diffs[2]
+        #print(delta_fitx)
+        squared_error = np.sum(np.power(delta_fitx, 2))
+        print(squared_error)
