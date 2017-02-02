@@ -27,27 +27,31 @@ def perform_image_area(img, area_percentage):
 
 def calculate_line_shape_area(line_fit, shape_structure=[40,30,20], ymax=720):
     #shape_structure = [20,15,10]
-    dedicated_points = [0, ymax/2, ymax]
+    old_y = [0, ymax/2, ymax]
+    old_x = [0,0,0]
 
-    angle=[0,0,0]
+    angle=[0,0,0] #  im Steigunsmaß
     new_y=[0,0,0]
+    new_x=[0,0,0]
     new_line_fit = [0,0,0]
 
-    for i in range(len(dedicated_points)):
-        angle[i] = 2 * line_fit[0] * dedicated_points[i] + line_fit[1]
+    for i in range(len(old_y)):
+        angle[i] = 2 * line_fit[0] * old_y[i] + line_fit[1]
         if angle[i] == 0:
-            new_y[i] = dedicated_points[i]
+            new_y[i] = old_y[i]
+            new_x[i] = shape_structure[i]
+        elif angle[i] > 0:
+            new_y[i] = shape_structure[i] / np.sqrt(1 + (1 / np.power(angle[i], 2)))
+            new_x[i] = (-1 / angle[i]) * new_y[i]
         else:
-            new_y[i] = shape_structure[i] / np.sqrt(1+(1/np.power(angle[i],2)))
-        new_y[i] = dedicated_points[i] + new_y[i]
+            new_y[i] = -(shape_structure[i] / np.sqrt(1+(1/np.power(angle[i],2))))
+            new_x[i] = (-1/angle[i]) * new_y[i]
+        #Bisher nur delta
+        new_y[i] = old_y[i] + new_y[i]
+        old_x[i] = line_fit[0]*np.power(old_y[i],2) + line_fit[1]*old_y[i] + line_fit[2]
+        new_x[i] = old_x[i] + new_x[i]
 
-    new_line_fit[0] = line_fit[0] * ((dedicated_points[2]-dedicated_points[1])/(new_y[2]-new_y[1]))
-    new_line_fit[1] = 2 * ((line_fit[0] * dedicated_points[1]) - (new_line_fit[0] * new_y[1])) + line_fit[1]
-    new_x_star = line_fit[2] - np.sqrt(np.power(shape_structure[0],2) - np.power(dedicated_points[0] - new_y[0],2))
-    new_line_fit[2] = new_x_star - (new_line_fit[0]*np.power(new_y[0],2)) - (new_line_fit[1]*new_y[0])
-    #Todo: line_fit[2] durch x aus base ersetzen gilt nur für y 0
-
-    print(line_fit, new_line_fit)
+    new_line_fit = np.polyfit(new_y, new_x, 2)
 
     return new_line_fit
 
@@ -74,7 +78,7 @@ def perform_lane_position(img, left_lane_fit=[0,0,540], right_lane_fit=[0,0,740]
     delta_fitx = diffs[0] * yvals ** 2 + diffs[1] * yvals + diffs[2]
     #print(delta_fitx)
     squared_error = np.sum(np.power(delta_fitx, 2))
-    print(squared_error)
+    #print(squared_error)
 
     # Recast the x and y points into usable format for cv2.fillPoly()
     pts_left_left = np.array([np.transpose(np.vstack([left_left_fitx, yvals]))])

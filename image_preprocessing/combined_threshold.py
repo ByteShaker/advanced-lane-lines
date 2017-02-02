@@ -83,53 +83,89 @@ def combined_thresholds_1(image):
 
     return combo
 
+def gamma_correction(img, correction):
+    img = img/255.0
+    img = cv2.pow(img, correction)
+    return np.uint8(img*255)
+
+def gamma_equalize(img, repetition=1, correction=2):
+    for i in range(repetition):
+        img = cv2.equalizeHist(img)
+        img = gamma_correction(img, correction)
+
+    return img
+
 def combined_thresholds_complete(image, verbose=False):
-    warped_image_cont = img_color.add_contrast(image, clipLimit=4.0, tileGridSize=(5,5))
-    warped_image_blur = cv2.medianBlur(image, 3)
-    warped_image_cont_blur = cv2.medianBlur(warped_image_cont, 3)
+    #warped_image_cont = img_color.add_contrast(image, clipLimit=4.0, tileGridSize=(5,5))
+    #warped_image_blur = cv2.medianBlur(image, 3)
+    #warped_image_cont_blur = cv2.medianBlur(warped_image_cont, 3)
 
-    img_cont = mio.image_cluster([image, warped_image_cont, warped_image_blur, warped_image_cont_blur])
-    cv2.imshow('Image Cont', img_cont)
+    #img_cont = mio.image_cluster([image, warped_image_cont, warped_image_blur, warped_image_cont_blur])
+    #cv2.imshow('Image Cont', img_cont)
 
-    hls = cv2.cvtColor(warped_image_cont, cv2.COLOR_BGR2HLS)
-    h = hls[:, :, 0]
-    l = hls[:, :, 1]
-    s = hls[:, :, 2]
 
-    one_color_channel = cv2.cvtColor(warped_image_cont, cv2.COLOR_BGR2GRAY)
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    hsv_h, hsv_s, hsv_v = cv2.split(hsv)
 
-    #combo = combine_edgeGray_edgeS(one_color_channel, s)
+    hsv_gamma_equal = gamma_equalize(hsv_v, 4, 6)
 
-    color_binary_S = img_color.layer_select(s, 'gray', (100, 255))
-    color_binary_Gray = img_color.layer_select(one_color_channel, 'gray', (200, 255))
+    hsv = cv2.merge((hsv_h, hsv_s, hsv_gamma_equal))
+    hsv = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
 
-    mag_binary_S = img_gradient.mag_thresh(s, 21, (30, 255))
-    mag_binary_Gray = img_gradient.mag_thresh(one_color_channel, 21, (50, 255))
+    mag_binary_V = img_gradient.mag_thresh(hsv_gamma_equal, 7, (50, 255))
+    dir_binary_V = img_gradient.dir_threshold(hsv_gamma_equal, 5, (0 * np.pi / 180, 55 * np.pi / 180))
+    combo_complete_3 = cv2.bitwise_and(dir_binary_V, mag_binary_V)
 
-    dir_binary_S = img_gradient.dir_threshold(mag_binary_S, 9, (0 * np.pi / 180, 55 * np.pi / 180))
-    dir_binary_Gray = img_gradient.dir_threshold(mag_binary_Gray, 9, (0 * np.pi / 180, 45 * np.pi / 180))
 
-    #combo_S_dir_mag = cv2.bitwise_and(dir_binary_S, mag_binary_S)
-    #combo_Gray_dir_mag = cv2.bitwise_and(dir_binary_Gray, mag_binary_Gray)
+    hurra = mio.image_cluster([hsv, hsv_gamma_equal, mag_binary_V, dir_binary_V, combo_complete_3])
+    cv2.imshow('hurra', hurra)
 
-    combo_S_dir_mag_blur = cv2.blur(dir_binary_S, (11, 11))
-    combo_Gray_dir_mag_blur = cv2.blur(dir_binary_Gray, (11, 11))
+    #hls = cv2.cvtColor(hsv, cv2.COLOR_BGR2HLS)
+    #h, l, s = cv2.split(hls)
 
-    combo_S = cv2.bitwise_and(combo_S_dir_mag_blur, color_binary_S)
-    combo_Gray = cv2.bitwise_and(combo_Gray_dir_mag_blur, color_binary_Gray)
+    #s = cv2.equalizeHist(s)
+    #s = gamma_correction(s, 10)
 
-    combo_complete = cv2.bitwise_or(combo_S, combo_Gray)
+    # one_color_channel = cv2.cvtColor(hsv, cv2.COLOR_BGR2GRAY)
+    #
+    # #combo = combine_edgeGray_edgeS(one_color_channel, s)
+    #
+    # color_binary_S = img_color.layer_select(s, 'gray', (60, 255))
+    # color_binary_Gray = img_color.layer_select(one_color_channel, 'gray', (80, 255))
+    #
+    # mag_binary_S = img_gradient.mag_thresh(s, 9, (60, 255))
+    # mag_binary_Gray = img_gradient.mag_thresh(one_color_channel, 9, (80, 255))
+    #
+    # dir_binary_S = img_gradient.dir_threshold(s, 5, (0 * np.pi / 180, 55 * np.pi / 180))
+    # dir_binary_Gray = img_gradient.dir_threshold(one_color_channel, 5, (0 * np.pi / 180, 45 * np.pi / 180))
+    #
+    # combo_S_dir_mag = cv2.bitwise_and(dir_binary_S, mag_binary_S)
+    # combo_Gray_dir_mag = cv2.bitwise_and(dir_binary_Gray, mag_binary_Gray)
+    #
+    # combo_S_dir_mag_blur = cv2.blur(dir_binary_S, (11, 11))
+    # combo_Gray_dir_mag_blur = cv2.blur(dir_binary_Gray, (11, 11))
+    #
+    # combo_S = cv2.bitwise_and(combo_S_dir_mag_blur, color_binary_S)
+    # combo_Gray = cv2.bitwise_and(combo_Gray_dir_mag_blur, color_binary_Gray)
+    #
+    # #gray_blurred = cv2.blur(color_binary_Gray, (21, 21))
+    # #s_blurred = cv2.blur(color_binary_S, (21, 21))
+    # #dir_binary = cv2.bitwise_or(dir_binary_S, dir_binary_Gray)
+    # #test_combo = cv2.bitwise_and(cv2.bitwise_or(s_blurred, dir_binary), cv2.bitwise_or(gray_blurred, dir_binary))
+    #
+    # combo_complete = cv2.bitwise_or(combo_S, combo_Gray)
+    # combo_complete_2 = cv2.bitwise_or(combo_S_dir_mag, combo_Gray_dir_mag)
+    #
+    # if verbose:
+    #     new_image = mio.image_cluster(
+    #         [one_color_channel, s, color_binary_Gray, color_binary_S, mag_binary_Gray, mag_binary_S, dir_binary_Gray, dir_binary_S, combo_Gray_dir_mag_blur, combo_S_dir_mag_blur, combo_Gray, combo_S, combo_complete, hsv, combo_complete_2],
+    #         img_text=['one_color_channel', 's', 'color_binary_Gray', 'color_binary_S', 'mag_binary_Gray', 'mag_binary_S', 'dir_binary_Gray', 'dir_binary_S', 'combo_Gray_dir_mag_blur', 'combo_S_dir_mag_blur', 'combo_Gray', 'combo_S', 'combo_complete'],
+    #         new_img_shape=(720, 1280), cluster_shape=(4, 4))
+    #
+    #     cv2.imshow('Combination', new_image)
+    #     #cv2.waitKey(0)
 
-    if verbose:
-        new_image = mio.image_cluster(
-            [one_color_channel, s, color_binary_Gray, color_binary_S, mag_binary_Gray, mag_binary_S, dir_binary_Gray, dir_binary_S, combo_Gray_dir_mag_blur, combo_S_dir_mag_blur, combo_Gray, combo_S, combo_complete],
-            img_text=['one_color_channel', 's', 'color_binary_Gray', 'color_binary_S', 'mag_binary_Gray', 'mag_binary_S', 'dir_binary_Gray', 'dir_binary_S', 'combo_Gray_dir_mag_blur', 'combo_S_dir_mag_blur', 'combo_Gray', 'combo_S', 'combo_complete'],
-            new_img_shape=(720, 1280), cluster_shape=(4, 4))
-
-        cv2.imshow('Combination', new_image)
-        #cv2.waitKey(0)
-
-    return combo_complete
+    return combo_complete_3
 
 if __name__ == "__main__":
 

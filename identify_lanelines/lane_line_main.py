@@ -26,6 +26,11 @@ from moviepy.editor import VideoFileClip
 MTX=None
 DIST=None
 
+left_line = line_class.Line()
+right_line = line_class.Line()
+
+master_lane = line_class.Lane()
+
 def weighted_img(img, initial_img, α=0.8, β=1., λ=0.):
     """
     `img` is the output of the hough_lines(), An image with lines drawn on it.
@@ -46,7 +51,7 @@ def detect_lane_lines():
 def process_image(raw_image, cvtColor='RGB'):
     # Correct Distortion with calculated Camera Calibration (If not present calibrate)
     global MTX, DIST
-    #global left_line, right_line
+    global left_line, right_line, master_lane
 
     mtx, dist, raw_image = correctDistortion.correct_distortion(raw_image, mtx=MTX, dist=DIST)
     if (MTX == None) | (DIST == None):
@@ -78,7 +83,7 @@ def process_image(raw_image, cvtColor='RGB'):
         identified_left_curve_area, identified_right_curve_area = img_position.perform_lane_position(warped_combined,
                                                                                                      left_lane_fit=[0,0,left_lane],
                                                                                                      right_lane_fit=[0,0,right_lane],
-                                                                                                     area_percentage=.3)
+                                                                                                     area_percentage=.5)
 
         left_lane_fit = identify_radius.fit_lane_line(identified_left_curve_area)
         right_lane_fit = identify_radius.fit_lane_line(identified_right_curve_area)
@@ -99,18 +104,19 @@ def process_image(raw_image, cvtColor='RGB'):
     test = mio.image_cluster([identified_left_curve_area, identified_right_curve_area])
     cv2.imshow('test', test)
 
-    left_fitx, left_lane_fit, yvals = identify_radius.create_fitted_area_1(identified_left_curve_area)
-    right_fitx, right_lane_fit, yvals = identify_radius.create_fitted_area_1(identified_right_curve_area)
+    if (np.max(identified_right_curve_area) > 0) & (np.max(identified_left_curve_area) > 0):
 
-    #left_line.proof_new_line_fit(left_lane_fit, yvals)
-    #right_line.proof_new_line_fit(right_lane_fit, yvals)
+        left_fitx, left_lane_fit, yvals = identify_radius.create_fitted_area_1(identified_left_curve_area)
+        right_fitx, right_lane_fit, yvals = identify_radius.create_fitted_area_1(identified_right_curve_area)
 
-    left_line.add_new_linefit(left_fitx, left_lane_fit, yvals)
-    right_line.add_new_linefit(right_fitx, right_lane_fit, yvals)
+        left_line.add_new_linefit(left_fitx, left_lane_fit, yvals)
+        right_line.add_new_linefit(right_fitx, right_lane_fit, yvals)
+
 
     fitted_lane_img = identify_radius.create_fitted_lane_img(left_line.current_fit, right_line.current_fit, left_line.ally)
 
     warped_fitted_lane_img = img_transform.warper(fitted_lane_img, src, dst, direction='backward')
+
 
     blue_image = np.zeros((warped_fitted_lane_img.shape[0], warped_fitted_lane_img.shape[1], 3), np.uint8)
     blue_image[((warped_fitted_lane_img == 1))] = (255, 0, 0)
@@ -144,19 +150,16 @@ def process_image(raw_image, cvtColor='RGB'):
 
 
 if __name__ == "__main__":
-    left_line = line_class.Line()
-    right_line = line_class.Line()
 
-    master_lane = line_class.Lane()
 
     #image = cv2.imread('../test_images/test5.jpg')
     #combo = process_image(image)
     #cv2.imshow('Window', combo)
-    #cv2.waitKey(1000)
+    #cv2.waitKey(1000000)
 
-    video_output = '../project_video_calc_5.mp4'
-    clip1 = VideoFileClip('../project_video.mp4')
-    #clip1 = VideoFileClip('../challenge_video.mp4')
+    video_output = '../challenge_video_calc.mp4'
+    #clip1 = VideoFileClip('../project_video.mp4')
+    clip1 = VideoFileClip('../challenge_video.mp4')
     #clip1 = VideoFileClip('../harder_challenge_video.mp4')
 
     white_clip_1 = clip1.fl_image(process_image)  # NOTE: this function expects color images!!

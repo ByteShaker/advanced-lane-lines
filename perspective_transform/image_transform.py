@@ -89,9 +89,9 @@ def calc_correct_transform(left_line, right_line, trust_detection=True):
     return lane_width_bottom, lane_width_top, bottom_angle
 
 def calc_new_sourcepoints(lane_width_bottom=None, lane_width_top=None, bottom_angle=0.):
-    inital_px_top = 76
+    inital_px_top = 70
     px_shift = 720 * bottom_angle
-    image_middle = 638 - px_shift
+    image_middle = 640 - px_shift
     if (lane_width_bottom==None) | (lane_width_top==None):
         left_pos_top = image_middle - int(inital_px_top / 2)
         right_pos_top = image_middle + int(inital_px_top / 2)
@@ -101,10 +101,10 @@ def calc_new_sourcepoints(lane_width_bottom=None, lane_width_top=None, bottom_an
         right_pos_top = image_middle + int(new_px_top / 2)
 
     src = np.float32(
-        [[left_pos_top, 444],
+        [[left_pos_top, 440],
          [210, 705],
          [1070, 705],
-         [right_pos_top, 444]])
+         [right_pos_top, 440]])
 
     dst = np.float32(
         [[540, 0],
