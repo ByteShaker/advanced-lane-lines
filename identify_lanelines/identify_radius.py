@@ -35,9 +35,9 @@ def calc_curve_radius_px(fit_cr, y_eval):
     # Now our radius of curvature is in meters
     return curverad_px
 
-def calc_curve_radius(xvals, yvals, y_eval):
+def calc_curve_radius(xvals, yvals, y_eval, img_shape=(720,1280)):
     # Define conversions in x and y from pixels space to meters
-    ym_per_pix = 45 / 720  # meters per pixel in y dimension
+    ym_per_pix = 45 / img_shape[0]  # meters per pixel in y dimension
     xm_per_pix = 3.7 / 200  # meteres per pixel in x dimension
     y_eval = ym_per_pix * y_eval
     fit_cr = np.polyfit(yvals * ym_per_pix, xvals * xm_per_pix, 2)

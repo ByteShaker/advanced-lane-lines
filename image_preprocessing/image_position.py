@@ -73,21 +73,15 @@ def perform_lane_position(img, left_lane_fit=[0,0,540], right_lane_fit=[0,0,740]
     left_right_fit = calculate_line_shape_area(left_lane_fit, shape_structure=shape_structure_right)
     left_right_fitx = left_right_fit[0] * yvals ** 2 + left_right_fit[1] * yvals + left_right_fit[2]
 
-    diffs = [left_lane_fit[i] - left_left_fit[i] for i in range(3)]
-    #print(diffs)
-    delta_fitx = diffs[0] * yvals ** 2 + diffs[1] * yvals + diffs[2]
-    #print(delta_fitx)
-    squared_error = np.sum(np.power(delta_fitx, 2))
+    #diffs = [left_lane_fit[i] - left_left_fit[i] for i in range(3)]
+    #delta_fitx = diffs[0] * yvals ** 2 + diffs[1] * yvals + diffs[2]
+    #squared_error = np.sum(np.power(delta_fitx, 2))
     #print(squared_error)
 
     # Recast the x and y points into usable format for cv2.fillPoly()
     pts_left_left = np.array([np.transpose(np.vstack([left_left_fitx, yvals]))])
     pts_left_right = np.array([np.flipud(np.transpose(np.vstack([left_right_fitx, yvals])))])
     pts_left = np.hstack((pts_left_left, pts_left_right))
-
-
-    #right_left_fitx = right_lane_fit[0] * yvals ** 2 + right_lane_fit[1] * yvals + right_lane_fit[2] - lane_range
-    #right_right_fitx = right_lane_fit[0] * yvals ** 2 + right_lane_fit[1] * yvals + right_lane_fit[2] + lane_range
 
     right_left_fit = calculate_line_shape_area(right_lane_fit, shape_structure=shape_structure_left)
     right_left_fitx = right_left_fit[0] * yvals ** 2 + right_left_fit[1] * yvals + right_left_fit[2]
@@ -105,8 +99,6 @@ def perform_lane_position(img, left_lane_fit=[0,0,540], right_lane_fit=[0,0,740]
     cv2.fillPoly(left_lane_binary, np.int_([pts_left]), 255)
     cv2.fillPoly(right_lane_binary, np.int_([pts_right]), 255)
     cv2.fillPoly(area_binary, area_select, 255)
-
-    cv2.imshow('Right_line', right_lane_binary)
 
     left_lane_position = cv2.bitwise_and(area_binary, left_lane_binary)
     right_lane_position = cv2.bitwise_and(area_binary, right_lane_binary)

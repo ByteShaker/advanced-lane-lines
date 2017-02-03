@@ -56,7 +56,7 @@ class Lane():
 
 # Define a class to receive the characteristics of each line detection
 class Line():
-    def __init__(self,number_of_fits_in_memory=3):
+    def __init__(self,number_of_fits_in_memory=5):
         # was the line detected in the last iteration?
         self.detected = False
         self.image_area_percentage = .6
@@ -90,7 +90,7 @@ class Line():
             approved=True
         else:
             approved = self.proof_new_line_fit(lane_fit, yvals)
-        print(approved)
+        #print(approved)
 
         if approved:
             fitx = np.array(fitx, ndmin=2)
@@ -117,8 +117,8 @@ class Line():
             self.detected = True
             self.image_area_percentage = 1
         else:
-            self.detected = False
-            self.best_fit = None
+            #self.detected = False
+            #self.best_fit = None
             self.image_area_percentage = .6
 
     def proof_new_line_fit(self, lane_fit, yvals):
@@ -130,4 +130,4 @@ class Line():
         squared_error = np.sum(np.power(delta_fitx, 2))
         #print(squared_error)
 
-        return squared_error < 80000
+        return squared_error < 5000000

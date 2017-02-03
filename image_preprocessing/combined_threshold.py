@@ -60,29 +60,6 @@ def combine_edgeGray_edgeS(one_color_channel, s):
 
     return combo
 
-def combined_thresholds_1(image):
-
-    hls = cv2.cvtColor(image, cv2.COLOR_BGR2HLS)
-    h = hls[:, :, 0]
-    l = hls[:, :, 1]
-    s = hls[:, :, 2]
-
-    one_color_channel = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-
-    combo = combine_edgeGray_edgeS(one_color_channel, s)
-    #combo = combine_img_pos(combo)
-
-    #mag_binary_S = img_gradient.mag_thresh(s, 9, (30, 255))
-    #mag_binary_Gray = img_gradient.mag_thresh(one_color_channel, 9, (30, 255))
-    #dir_binary = img_gradient.dir_threshold(combo, 15, (35 * np.pi / 180, 65 * np.pi / 180))
-
-    #combo1 = cv2.bitwise_and(dir_binary, mag_binary_S)
-    #combo2 = cv2.bitwise_and(dir_binary, mag_binary_Gray)
-
-    #combo3 = bitwise_OR_images(combo1, combo2)
-
-    return combo
-
 def gamma_correction(img, correction):
     img = img/255.0
     img = cv2.pow(img, correction)
@@ -108,18 +85,23 @@ def combined_thresholds_complete(image, verbose=False):
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
     hsv_h, hsv_s, hsv_v = cv2.split(hsv)
 
-    hsv_gamma_equal_dark = gamma_equalize(hsv_v, 3, 8)
+    hsv_gamma_equal_dark = gamma_equalize(hsv_v, 5, 5)
     #hsv_gamma_equal_light = gamma_equalize(hsv_v, 3, .8)
 
     hsv = cv2.merge((hsv_h, hsv_s, hsv_gamma_equal_dark))
     hsv = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
 
-    mag_binary_V = img_gradient.mag_thresh(hsv_gamma_equal_dark, 7, (50, 255))
-    dir_binary_V = img_gradient.dir_threshold(hsv_gamma_equal_dark, 5, (0 * np.pi / 180, 55 * np.pi / 180))
+    mag_binary_V = img_gradient.mag_thresh(hsv_gamma_equal_dark, 7, (40, 255))
+    color_binary_V = img_color.layer_select(hsv_gamma_equal_dark, 'gray', (150, 255))
+    dir_binary_V = img_gradient.dir_threshold(hsv_gamma_equal_dark, 21, (0 * np.pi / 180, 55 * np.pi / 180))
     combo_complete_dark = cv2.bitwise_and(dir_binary_V, mag_binary_V)
 
-    hurra = mio.image_cluster([hsv, hsv_gamma_equal_dark, mag_binary_V, dir_binary_V, combo_complete_dark])
-    cv2.imshow('hurra', hurra)
+    combo_complete_dark = cv2.bitwise_or(color_binary_V, combo_complete_dark)
+
+    process_2_binary_text = ["Original ->","HSV_V_Gamma ->","Original_Gamma ->","Mag_Gradient ->","Dir_Gradient ->","Combined_binary"]
+    process_2_binary = mio.image_cluster([image, hsv_gamma_equal_dark, hsv, mag_binary_V, dir_binary_V, combo_complete_dark], process_2_binary_text)
+    cv2.imshow('hurra', process_2_binary)
+
 
     #hls = cv2.cvtColor(hsv, cv2.COLOR_BGR2HLS)
     #h, l, s = cv2.split(hls)
@@ -171,72 +153,12 @@ def combined_thresholds_complete(image, verbose=False):
 if __name__ == "__main__":
 
     # Read in an image and grayscale it
-    image = cv2.imread('../test_images/test1.jpg')
+    image = cv2.imread('../test_images/test6.jpg')
     mtx, dist, image = correctDistortion.correct_distortion(image)
 
-    one_color_channel = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    src, dst = img_transform.calc_new_sourcepoints()
+    warped_image = img_transform.warper(image, src, dst)
 
+    combined_thresholds_complete(warped_image)
 
-    hls = cv2.cvtColor(image, cv2.COLOR_BGR2HLS)
-    h = hls[:, :, 0]
-    l = hls[:, :, 1]
-    s = hls[:, :, 2]
-
-    hlv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-    hlv_H = hlv[:, :, 0]
-    hlv_S = hlv[:, :, 1]
-    hlv_V = hlv[:, :, 2]
-
-    combo_edgeGray_edgeS = combine_edgeGray_edgeS(image, s)
-    combo = combine_img_pos(combo_edgeGray_edgeS)
-
-    l_binary = img_color.layer_select(image, 'l', (200, 255))
-    s_binary = img_color.layer_select(image, 's', (100, 255))
-    gray_binary = img_color.layer_select(image, 'gray', (150, 225))
-
-    mag_binary_S = img_gradient.mag_thresh(s, 3, (30, 255))
-    mag_binary_Gray = img_gradient.mag_thresh(one_color_channel, 3, (30, 255))
-    dir_binary = img_gradient.dir_threshold(combo, 15, (35 * np.pi / 180, 65 * np.pi / 180))
-
-    retval, hlv_V_binary = cv2.threshold(hlv_V.astype('uint8'), 150, 255, cv2.THRESH_BINARY)
-
-    combo1 = bitwise_AND_images(dir_binary, mag_binary_S)
-    combo2 = bitwise_AND_images(hlv_V_binary, dir_binary)
-    combo3 = bitwise_AND_images(dir_binary, mag_binary_Gray)
-
-    combo4 = bitwise_OR_images(combo1, combo3)
-
-
-    gradx = img_gradient.abs_sobel_thresh(one_color_channel, 'x', 9, (20, 255))
-    grady = img_gradient.abs_sobel_thresh(one_color_channel, 'y', 9, (20, 255))
-
-
-    position_binary = img_position.position_select(s)
-
-    combined = np.zeros_like(dir_binary)
-
-    #combined[((gradx == 1) & (grady == 1)) | ((mag_binary == 1) & (dir_binary == 1))] = 1
-    #combined[((gradx == 1) & (grady == 1))] = 1
-    #combined[((mag_binary == 1) & (dir_binary == 1)) & (position_binary == 1)] = 1
-    #combined[(((s_binary >= 200) | (l_binary >= 200)) | ((mag_binary == 1) & (dir_binary == 1))) & (position_binary == 1)] = 1
-    #combined[(((s_binary == 255) | (l_binary == 255))) & (position_binary == 1)] = 1
-
-    src, dst = img_transform.perform_initial_sourcepoints()
-    warped_combined = img_transform.warper(combo4, src, dst)
-
-    warped_combined1 = img_transform.warper(combo_edgeGray_edgeS, src, dst)
-
-    dir_binary = img_gradient.dir_threshold(warped_combined1, 15, (0 * np.pi / 180, 35 * np.pi / 180))
-
-    new_image = mio.image_cluster([one_color_channel, s, cv2.Canny(one_color_channel, 120, 180), cv2.Canny(s, 120, 180), combo_edgeGray_edgeS, warped_combined1, dir_binary], new_img_shape=(1200, 2260), cluster_shape=(4,2))
-
-    cv2.imshow('Combined Tresholds Overview', new_image)
     cv2.waitKey(0)
-
-    histogram = np.sum(warped_combined[int(warped_combined.shape[0] * 2/3):, :], axis=0)
-    histogram_df = pd.DataFrame(histogram)
-
-    Series = histogram_df[0].rolling(window=200, axis=0, center=True, win_type='gaussian').mean(std=10.0)
-
-    histogram_df['Peak_Filter'] = Series
-    mpo.plot_cluster([Series])

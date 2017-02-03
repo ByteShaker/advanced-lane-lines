@@ -8,6 +8,7 @@ import glob
 import pickle
 
 import toolbox.multiple_plots_out as mpo
+import toolbox.multiple_image_out as mio
 
 def perform_initial_sourcepoints():
     # src = np.float32(
@@ -88,10 +89,10 @@ def calc_correct_transform(left_line, right_line, look_at_image_area_percentage=
 
     return lane_width_bottom, lane_width_top, bottom_angle
 
-def calc_new_sourcepoints(lane_width_bottom=None, lane_width_top=None, bottom_angle=0.):
+def calc_new_sourcepoints(lane_width_bottom=None, lane_width_top=None, bottom_angle=0., img_shape=(720,1280)):
     inital_px_top = 70
-    px_shift = 720 * bottom_angle
-    image_middle = 640 - px_shift
+    px_shift = img_shape[0] * bottom_angle
+    image_middle = int(img_shape[1]/2) - px_shift
     if (lane_width_bottom==None) | (lane_width_top==None):
         left_pos_top = image_middle - int(inital_px_top / 2)
         right_pos_top = image_middle + int(inital_px_top / 2)
@@ -101,16 +102,16 @@ def calc_new_sourcepoints(lane_width_bottom=None, lane_width_top=None, bottom_an
         right_pos_top = image_middle + int(new_px_top / 2)
 
     src = np.float32(
-        [[left_pos_top, 440],
-         [210, 705],
-         [1070, 705],
-         [right_pos_top, 440]])
+        [[left_pos_top, img_shape[0]*(440/720)],
+         [img_shape[1]*(210/1280), img_shape[0]*(705/720)],
+         [img_shape[1]*(1070/1280), img_shape[0]*(705/720)],
+         [right_pos_top, img_shape[0]*(440/720)]])
 
     dst = np.float32(
-        [[540, 0],
-         [540, 720],
-         [740, 720],
-         [740, 0]])
+        [[img_shape[1]*(540/1280), 0],
+         [img_shape[1]*(540/1280), img_shape[0]],
+         [img_shape[1]*(740/1280), img_shape[0]],
+         [img_shape[1]*(740/1280), 0]])
 
     return (src, dst)
 
@@ -132,10 +133,21 @@ def warper(img, src, dst, direction='forward'):
 if __name__ == "__main__":
 
     # Read in an image and grayscale it
-    image = cv2.imread('../test_images/test5.jpg')
-    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    image = cv2.imread('../test_images/straight_lines1.jpg')
+    # image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
     src, dst = perform_initial_sourcepoints()
     warped_image = warper(image, src, dst)
 
-    mpo.plot_cluster([image, warped_image], img_text=['Original Image', 'Warped Image'])
+    for i in range(len(src)):
+        cv2.line(image, tuple(src[i-1]), tuple(src[i]), (255, 0, 0), 5)
+        cv2.line(warped_image, tuple(dst[i - 1]), tuple(dst[i]), (255, 0, 0), 5)
+
+    result = mio.two_images(image, warped_image)
+
+    cv2.putText(result, "Original", (100, 100), cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 255), 5)
+    cv2.putText(result, "Transformed", (image.shape[1] + 100, 100), cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 255), 5)
+
+    result = cv2.resize(result, None, fx=.5, fy=.5, interpolation=cv2.INTER_CUBIC)
+    cv2.imwrite('../output_images/transformed_image.jpg', result)
+    #mpo.plot_cluster([image, warped_image], img_text=['Original Image', 'Warped Image'])

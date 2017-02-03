@@ -11,7 +11,7 @@ def cal_undistort(img, mtx, dist):
     return undist
 
 
-def correct_distortion(img, mtx=None, dist=None, camera_calibration_values='../calibration/camera_calibration_values.pickle'):
+def correct_distortion(img, mtx=None, dist=None, camera_calibration_values='../calibration/camera_calibration_values.pickle', verbose=False):
     """
     :param filepath:
     :param camera_calibration_values:
@@ -36,7 +36,7 @@ def correct_distortion(img, mtx=None, dist=None, camera_calibration_values='../c
 
 if __name__ == "__main__":
     # Read in the image
-    img = cv2.imread('../calibration/camera_cal/calibration1.jpg')
+    img = cv2.imread('../test_images/test6.jpg')
 
     mtx, dist, undistorted = correct_distortion(img)
 
@@ -48,6 +48,6 @@ if __name__ == "__main__":
     result = cv2.resize(result, None, fx=.5, fy=.5, interpolation=cv2.INTER_CUBIC)
 
     cv2.imshow('Two Images', result)
-    cv2.waitKey(0)
+    #cv2.waitKey(0)
 
-    cv2.imwrite('../output_images/undistorted_calibration1.jpg', result)
+    cv2.imwrite('../output_images/original_undistorted.jpg', result)

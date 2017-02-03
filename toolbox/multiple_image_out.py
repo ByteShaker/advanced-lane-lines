@@ -43,7 +43,7 @@ def two_images(img1, img2):
 
     return new_image
 
-def image_cluster(img_list=[], img_text=False, new_img_shape=None, cluster_shape=None):
+def image_cluster(img_list=[], img_text=False, new_img_shape=None, cluster_shape=None, font_size=.5, y_position=40):
     if cluster_shape == None:
         val_col = int(np.ceil(np.sqrt(len(img_list))))
         val_row = int(np.ceil(len(img_list)/val_col))
@@ -66,8 +66,8 @@ def image_cluster(img_list=[], img_text=False, new_img_shape=None, cluster_shape
             if img_text:
                 if cluster_index < len(img_text):
                     if img_text[cluster_index] != None:
-                        text_position = (col*int(new_img_shape[1]/cluster_shape[1])+20, row*int(new_img_shape[0]/cluster_shape[0])+100)
-                        cv2.putText(new_image, img_text[cluster_index], text_position, cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 1)
+                        text_position = (col*int(new_img_shape[1]/cluster_shape[1])+20, row*int(new_img_shape[0]/cluster_shape[0])+y_position)
+                        cv2.putText(new_image, img_text[cluster_index], text_position, cv2.FONT_HERSHEY_SIMPLEX, font_size, (255, 0, 0), 2)
 
             cluster_index += 1
             if (cluster_index >= len(img_list)):
