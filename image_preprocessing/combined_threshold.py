@@ -92,11 +92,11 @@ def combined_thresholds_complete(image, verbose=False):
     hsv = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
 
     mag_binary_V = img_gradient.mag_thresh(hsv_gamma_equal_dark, 7, (40, 255))
-    color_binary_V = img_color.layer_select(hsv_gamma_equal_dark, 'gray', (150, 255))
+    #color_binary_V = img_color.layer_select(hsv_gamma_equal_dark, 'gray', (150, 255))
     dir_binary_V = img_gradient.dir_threshold(hsv_gamma_equal_dark, 21, (0 * np.pi / 180, 55 * np.pi / 180))
     combo_complete_dark = cv2.bitwise_and(dir_binary_V, mag_binary_V)
 
-    combo_complete_dark = cv2.bitwise_or(color_binary_V, combo_complete_dark)
+    #combo_complete_dark = cv2.bitwise_or(color_binary_V, combo_complete_dark)
 
     process_2_binary_text = ["Original ->","HSV_V_Gamma ->","Original_Gamma ->","Mag_Gradient ->","Dir_Gradient ->","Combined_binary"]
     process_2_binary = mio.image_cluster([image, hsv_gamma_equal_dark, hsv, mag_binary_V, dir_binary_V, combo_complete_dark], process_2_binary_text)
