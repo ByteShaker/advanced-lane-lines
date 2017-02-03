@@ -100,7 +100,7 @@ def identify_line_position(histogram, rolling_window=1000, std=10.0, approx_pos=
 
     return histogram_df['Lanes'], left_lane, right_lane
 
-def identify_lane_position(histogram, rolling_window=1000, std=10.0, approx_left_lane=540, approx_right_lane=740, peak_filter_threshold=10, peak_filter_dot_threshold=20., peak_filter_dot_dot_threshold=0, lane_window=100, verbose=False):
+def identify_lane_position(histogram, rolling_window=1000, std=10.0, approx_left_lane=540, approx_right_lane=740, peak_filter_threshold=10, peak_filter_dot_threshold=20., peak_filter_dot_dot_threshold=0, lane_window=120, verbose=False):
     histogram_df = pd.DataFrame(histogram)
     histogram_df['Peak_Filter'] = kernel_density_estimation(histogram_df, rolling_window=rolling_window, std=std)
     histogram_df['Peak_Filter_dot'] = histogram_df['Peak_Filter'].diff()

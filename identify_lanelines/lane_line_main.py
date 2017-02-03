@@ -83,8 +83,8 @@ def process_image(raw_image, cvtColor='RGB'):
 
 
     identified_left_curve_area, identified_right_curve_area = img_position.perform_lane_position(warped_combined,
-                                                                                                left_lane_fit=left_line.best_fit,
-                                                                                                right_lane_fit=right_line.best_fit,
+                                                                                                left_lane_fit=left_line.current_fit,
+                                                                                                right_lane_fit=right_line.current_fit,
                                                                                                 area_percentage=look_at_image_area_percentage)
 
     search_Area = mio.image_cluster([cv2.bitwise_or(identified_left_curve_area, identified_right_curve_area)])

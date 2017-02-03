@@ -115,11 +115,11 @@ class Line():
             self.ally = yvals
 
             self.detected = True
-            self.image_area_percentage = .6
+            self.image_area_percentage = 1
         else:
             self.detected = False
-            #self.best_fit = None
-            self.image_area_percentage = 1
+            self.best_fit = None
+            self.image_area_percentage = .6
 
     def proof_new_line_fit(self, lane_fit, yvals):
         #print(self.current_fit, lane_fit)
@@ -130,4 +130,4 @@ class Line():
         squared_error = np.sum(np.power(delta_fitx, 2))
         #print(squared_error)
 
-        return squared_error < 200000
+        return squared_error < 80000
